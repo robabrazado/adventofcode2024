@@ -60,7 +60,7 @@ public class Aoc2024Cli {
 	
 	private static void showUsage() {
 		System.out.println("Usage:");
-		System.out.println("\tAoc2024Cli day part [\"test\"]");
+		System.out.println("\tAoc2024Cli <day> <part> [\"test\"]");
 		return;
 	}
 }
