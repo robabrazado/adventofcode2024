@@ -1,7 +1,9 @@
 package com.robabrazado.aoc2024;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
@@ -52,6 +54,10 @@ public abstract class Solver {
 			throw new IOException("Resource " + resourceName + " not found");
 		}
 		return in;
+	}
+	
+	protected BufferedReader getPuzzleInputReader(boolean testData) throws IOException {
+		return new BufferedReader(new InputStreamReader(this.getPuzzleInputStream(testData)));
 	}
 	
 	public int getDay() {

@@ -2,7 +2,6 @@ package com.robabrazado.aoc2024.day01;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +31,7 @@ public class Day01Solver extends Solver {
 		
 		BufferedReader in = null;
 		try {
-			in = new BufferedReader(new InputStreamReader(super.getPuzzleInputStream(testData)));
+			in = super.getPuzzleInputReader(testData);
 			
 			String line = in.readLine();
 			while (line != null) {
