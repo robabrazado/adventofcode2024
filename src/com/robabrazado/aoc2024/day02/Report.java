@@ -12,7 +12,7 @@ public class Report {
 		Pattern p = Pattern.compile("(\\d+)");
 		Matcher m = p.matcher(inputLine);
 		Integer lastLevel = null;
-		int lastDir = 0; // -1 desc; 1 asc
+		int lastDir = 0; // -1 asc; 1 desc
 		
 		while (m.find() && safeSoFar) {
 			Integer thisLevel = Integer.valueOf(m.group());
