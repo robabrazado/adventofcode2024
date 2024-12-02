@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 
 import com.robabrazado.aoc2024.day01.Day01Solver;
+import com.robabrazado.aoc2024.day02.Day02Solver;
 
 public abstract class Solver {
 	private final int day;
@@ -20,8 +21,8 @@ public abstract class Solver {
 		return;
 	}
 	
-	public void solve(OutputStream out, OutputStream err, boolean partOne, boolean testOnly) throws IOException {
-		solve(new PrintWriter(out, true), new PrintWriter(out, true), partOne, testOnly);
+	public void solve(OutputStream out, OutputStream err, boolean partOne, boolean testData) throws IOException {
+		solve(new PrintWriter(out, true), new PrintWriter(out, true), partOne, testData);
 	}
 	
 	/**
@@ -30,10 +31,10 @@ public abstract class Solver {
 	 * @param out
 	 * @param err
 	 * @param isPartOne {@code true} for part one; {@code false} for part two
-	 * @param testOnly {@code true} to use test input; {@code false} to use real input
+	 * @param testData {@code true} to use test input; {@code false} to use real input
 	 * @throws IOException
 	 */
-	protected abstract void solve(PrintWriter out, PrintWriter err, boolean isPartOne, boolean testOnly) throws IOException;
+	protected abstract void solve(PrintWriter out, PrintWriter err, boolean isPartOne, boolean testData) throws IOException;
 	
 	protected String getInputResourceName(boolean testData) {
 		StringBuilder strb = new StringBuilder("/puzzle-input/day");
@@ -72,6 +73,8 @@ public abstract class Solver {
 		switch (day) {
 		case 1:
 			return new Day01Solver();
+		case 2:
+			return new Day02Solver();
 		default:
 			return new DefaultSolver(day);
 		}
