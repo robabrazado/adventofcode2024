@@ -23,7 +23,7 @@ public abstract class Solver {
 	}
 	
 	public void solve(OutputStream out, OutputStream err, boolean partOne, boolean testData) throws IOException {
-		solve(new PrintWriter(out, true), new PrintWriter(out, true), partOne, testData);
+		solve(new PrintWriter(out, true), new PrintWriter(err, true), partOne, testData);
 	}
 	
 	/**
