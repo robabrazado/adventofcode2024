@@ -11,6 +11,8 @@ import java.text.DecimalFormat;
 import com.robabrazado.aoc2024.day01.Day01Solver;
 import com.robabrazado.aoc2024.day02.Day02Solver;
 import com.robabrazado.aoc2024.day03.Day03Solver;
+import com.robabrazado.aoc2024.day04.Day04Solver;
+import com.robabrazado.aoc2024.day05.Day05Solver;
 
 public abstract class Solver {
 	private final int day;
@@ -78,6 +80,10 @@ public abstract class Solver {
 			return new Day02Solver();
 		case 3:
 			return new Day03Solver();
+		case 4:
+			return new Day04Solver();
+		case 5:
+			return new Day05Solver();
 		default:
 			return new DefaultSolver(day);
 		}
