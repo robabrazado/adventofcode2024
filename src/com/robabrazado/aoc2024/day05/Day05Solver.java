@@ -110,7 +110,7 @@ public class Day05Solver extends Solver {
 				}
 				
 				if (!rs.orderPasses(order)) {
-					List<Integer> newOrder = rs.reorderOrder(order);
+					List<Integer> newOrder = rs.correctOrder(order);
 
 					runningTotal += newOrder.get(newOrder.size() / 2);
 				}
