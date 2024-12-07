@@ -58,3 +58,10 @@ I got part 1 relatively quickly, but then had to step away before getting sucked
 
 As an aside...I really need a better system for compartmentalizing the different days' solutions. I am *certain* I'm committing unbuildable code, so...that sucks. Maybe I'll try and straighten that stuff up this weekend (day 7 or 8).
 
+## Day 6: Guard Gallivant
+
+Upon initially reading this puzzle, I realize that all that overengineering I gave up on for Day 4 would actually come in handy now, so I should finish Day 4 before going on to Day 6.
+
+## Day 7: Bridge Repair
+
+This won't be a full report. I've logged answers for Day 7 as far as the puzzle is concerned, but two things remain before I finalize. One, I know that my solution is (a) terrible, and (b) badly managed, because I can't switch between solving between part 1 and part 2. Two, I'm on the verge of just totally refactoring everything in the project, so (at time of check-in), the Day 7 Solver runs independently of the main entry point and isn't accessible from there (you have to run `Day07Solver.main` directly). So...I would like to rewrite the main entry point code, and I also assume I'll be rewriting Day 7 altogether, because the solution is not great.
