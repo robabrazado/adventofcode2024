@@ -53,8 +53,8 @@ public class Day07Solver {
 			BigInteger correctResult = null;
 			int numCombinations = opCombinations.size();
 			for (int i = 0; i < numCombinations && correctResult == null; i++) {
-				BigInteger tempResult = Day07Solver.evaluate(operands, opCombinations.get(i));
-				if (tempResult.equals(answer)) {
+				BigInteger tempResult = Day07Solver.evaluate(operands, opCombinations.get(i), answer);
+				if (tempResult != null && tempResult.equals(answer)) {
 					correctResult = tempResult;
 				}
 			}
@@ -68,6 +68,12 @@ public class Day07Solver {
 	}
 	
 	public static BigInteger evaluate(List<BigInteger> operands, List<Operator> operators) {
+		return Day07Solver.evaluate(operands, operators, (BigInteger) null);
+	}
+	
+	// Assuming operators can only increase values, will abandon evaluation and return null if interstitial value exceeds expected answer
+	// Null expected answer just means return answer no matter what
+	public static BigInteger evaluate(List<BigInteger> operands, List<Operator> operators, BigInteger expectedAnswer) {
 		List<BigInteger> rands = new ArrayList<BigInteger>(operands);
 		List<Operator> rators = new ArrayList<Operator>(operators);
 		BigInteger result = null;
@@ -81,11 +87,18 @@ public class Day07Solver {
 			// Replace first two operands with result of first operator expression, then repeat
 			BigInteger answer = rators.get(0).operate(rands.get(0), rands.get(1));
 			
-			rands.remove(0);
-			rands.set(0, answer);
-			rators.remove(0);
-			
-			result = Day07Solver.evaluate(rands, rators);
+			if (expectedAnswer != null) {
+				// Check if this is never going to happen
+				if (answer.compareTo(expectedAnswer) > 0) {
+					result = null;
+				} else {
+					rands.remove(0);
+					rands.set(0, answer);
+					rators.remove(0);
+					
+					result = Day07Solver.evaluate(rands, rators, expectedAnswer);
+				}
+			}
 		}
 		return result;
 	}
