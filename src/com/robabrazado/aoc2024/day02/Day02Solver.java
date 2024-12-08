@@ -1,8 +1,7 @@
 package com.robabrazado.aoc2024.day02;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.Solver;
 
@@ -15,60 +14,35 @@ public class Day02Solver extends Solver {
 	}
 
 	@Override
-	protected void solve(PrintWriter out, PrintWriter err, boolean isPartOne, boolean testData) throws IOException {
-		if (isPartOne) {
-			this.solve1(out, err, testData);
-		} else {
-			this.solve2(out, err, testData);
-		}
-	}
-	
-	protected void solve1(PrintWriter out, PrintWriter err, boolean testData) throws IOException {
-		BufferedReader in = null;
+	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
 		int safeCounter = 0;
 		
-		try {
-			in = super.getPuzzleInputReader(testData);
-			
-			String line = in.readLine();
-			while (line != null) {
-				Report r = new Report(line);
-				if (r.isSafe()) {
-					safeCounter++;
-				}
-				line = in.readLine();
-			}
-		} finally {
-			if (in != null) {
-				in.close();
+		Iterator<String> it = puzzleInput.iterator();
+		while (it.hasNext()) {
+			String line = it.next();
+			Report r = new Report(line);
+			if (r.isSafe()) {
+				safeCounter++;
 			}
 		}
 		
-		out.println(safeCounter);
+		return String.valueOf(safeCounter);
 	}
 
-	protected void solve2(PrintWriter out, PrintWriter err, boolean testData) throws IOException {
-		BufferedReader in = null;
+	@Override
+	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
 		int safeCounter = 0;
 		
-		try {
-			in = super.getPuzzleInputReader(testData);
-			
-			String line = in.readLine();
-			while (line != null) {
-				ReportWithProblemDampener r = new ReportWithProblemDampener(line);
-				if (r.isSafe()) {
-					safeCounter++;
-				}
-				line = in.readLine();
-			}
-		} finally {
-			if (in != null) {
-				in.close();
+		Iterator<String> it = puzzleInput.iterator();
+		while (it.hasNext()) {
+			String line = it.next();
+			ReportWithProblemDampener r = new ReportWithProblemDampener(line);
+			if (r.isSafe()) {
+				safeCounter++;
 			}
 		}
 		
-		out.println(safeCounter);
+		return String.valueOf(safeCounter);
 	}
 
 }

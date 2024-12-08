@@ -1,6 +1,11 @@
 package com.robabrazado.aoc2024;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
+import java.util.stream.Stream;
 
 public class Aoc2024Cli {
 
@@ -8,6 +13,7 @@ public class Aoc2024Cli {
 		int argc = argv.length;
 		boolean showUsage = false;
 		String errMsg = null;
+		BufferedReader in = null;
 		
 		try {
 			if (argc >= 2) {
@@ -37,7 +43,27 @@ public class Aoc2024Cli {
 					throw new Aoc2024Exception("Third argument must be \"test\" or omitted");
 				}
 				
-				Solver.getSolver(dayNum).solve(System.out, System.err, "1".equals(part), test != null);
+				String formattedDay = new DecimalFormat("00").format(dayNum);
+				boolean partOne = "1".equals(part);
+				boolean testData = test != null;
+				
+				// Instantiate solver
+				Solver solver = (Solver) Class.forName("com.robabrazado.aoc2024.day" +
+						formattedDay + ".Day" + formattedDay + "Solver").getDeclaredConstructor().newInstance();
+				
+				// Set up puzzle input stream
+				StringBuilder strb = new StringBuilder("/puzzle-input/day");
+				strb.append(formattedDay);
+				strb.append("-input");
+				if (testData) {
+					strb.append("-test");
+				}
+				strb.append(".txt");
+				
+				in = new BufferedReader(new InputStreamReader(Aoc2024Cli.class.getResourceAsStream(strb.toString())));
+				Stream<String> puzzleInput = in.lines();
+				
+				System.out.println(solver.solve(puzzleInput, partOne, testData));
 			} else {
 				errMsg = "Invalid arguments";
 				showUsage = true;
@@ -45,8 +71,15 @@ public class Aoc2024Cli {
 		} catch (Aoc2024Exception e) {
 			errMsg = e.getMessage();
 			showUsage = true;
-		} catch (IOException ioe) {
-			throw new RuntimeException(ioe);
+		} catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException |
+				InstantiationException | NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException doNothing) {}
+			}
 		}
 		
 		if (errMsg != null) {
@@ -63,4 +96,5 @@ public class Aoc2024Cli {
 		System.out.println("\tAoc2024Cli <day> <part> [\"test\"]");
 		return;
 	}
+	
 }

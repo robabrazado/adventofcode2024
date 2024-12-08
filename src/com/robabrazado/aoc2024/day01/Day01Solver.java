@@ -1,15 +1,14 @@
 package com.robabrazado.aoc2024.day01;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.Solver;
 
@@ -22,37 +21,29 @@ public class Day01Solver extends Solver {
 	}
 
 	@Override
-	public void solve(PrintWriter out, PrintWriter err, boolean partOne, boolean testData) throws IOException {
+	public String solve(Stream<String> puzzleInput, boolean partOne, boolean testData) {
+		String result = null;
 		List<Integer> leftList = new ArrayList<Integer>();
 		List<Integer> rightList = new ArrayList<Integer>();
 		Map<Integer, Integer> leftCounts = new HashMap<Integer, Integer>();
 		Map<Integer, Integer> rightCounts = new HashMap<Integer, Integer>();
 		Pattern p = Pattern.compile("(\\d+)\\s+(\\d+)");
 		
-		BufferedReader in = null;
-		try {
-			in = super.getPuzzleInputReader(testData);
-			
-			String line = in.readLine();
-			while (line != null) {
-				Matcher m = p.matcher(line);
-				if (m.find()) {
-					Integer leftInt = Integer.valueOf(m.group(1));
-					Integer rightInt = Integer.valueOf(m.group(2));
-					
-					leftList.add(leftInt);
-					Day01Solver.count(leftCounts, leftInt);
-					
-					rightList.add(rightInt);
-					Day01Solver.count(rightCounts, rightInt);
-				} else {
-					throw new RuntimeException("Regex failed; this shouldn't happen");
-				}
-				line = in.readLine();
-			}
-		} finally {
-			if (in != null) {
-				in.close();
+		Iterator<String> it = puzzleInput.iterator();
+		while (it.hasNext()) {
+			String line = it.next();
+			Matcher m = p.matcher(line);
+			if (m.find()) {
+				Integer leftInt = Integer.valueOf(m.group(1));
+				Integer rightInt = Integer.valueOf(m.group(2));
+				
+				leftList.add(leftInt);
+				Day01Solver.count(leftCounts, leftInt);
+				
+				rightList.add(rightInt);
+				Day01Solver.count(rightCounts, rightInt);
+			} else {
+				throw new RuntimeException("Regex failed; this shouldn't happen");
 			}
 		}
 		
@@ -66,7 +57,7 @@ public class Day01Solver extends Solver {
 				distanceTally += Math.abs(leftList.get(i).intValue() - rightList.get(i).intValue());
 			}
 			
-			out.println(distanceTally);
+			result = String.valueOf(distanceTally);
 		} else {
 			long similarityScore = 0;
 			for (Integer i : leftList) {
@@ -75,8 +66,10 @@ public class Day01Solver extends Solver {
 				}
 			}
 			
-			out.println(similarityScore);
+			result = String.valueOf(similarityScore);
 		}
+		
+		return result;
 	}
 
 	private static void count(Map<Integer, Integer> countMap, Integer num) {
@@ -86,6 +79,16 @@ public class Day01Solver extends Solver {
 		}
 		countMap.put(num, Integer.valueOf(++oldCount));
 		return;
+	}
+
+	@Override
+	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
+		return this.solve(puzzleInput, true, isTest);
+	}
+
+	@Override
+	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
+		return this.solve(puzzleInput, false, isTest);
 	}
 
 }
