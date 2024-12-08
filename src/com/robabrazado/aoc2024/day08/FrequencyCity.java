@@ -50,7 +50,12 @@ public class FrequencyCity {
 		this.width = tempWidth;
 	}
 	
-	public int countAntinodes() {
+	/**
+	 * 
+	 * @param doubleDistance true if using "double distance" requirement (part 1); false if using "resonant harmonics" (part 2)
+	 * @return
+	 */
+	public int countAntinodes(boolean doubleDistance) {
 		Set<Coords> antinodes = new HashSet<Coords>();
 		Map<Character, List<Coords>> frequencyMap = new HashMap<Character, List<Coords>>();
 		
@@ -75,18 +80,50 @@ public class FrequencyCity {
 				
 				// For each other antenna other than the one we're looking at, log antinode locations
 				for (Coords otherLocation : otherLocations) {
-					Coords firstOffset = thisLocation.getOffsetTo(otherLocation);
-					Coords[] tempAntinodes = {otherLocation.applyOffset(firstOffset), thisLocation.applyOffset(firstOffset.invert())};
-					for (Coords antinode : tempAntinodes) {
-						if (this.isInBounds(antinode)) {
-							antinodes.add(antinode);
-						}
+					if (doubleDistance) { // I know I should nest this differently for performance but eh
+						antinodes.addAll(this.getDoubleDistanceAntinodes(thisLocation, otherLocation));
+					} else {
+						antinodes.addAll(this.getResonantHarmonicsAntinodes(thisLocation, otherLocation));
 					}
 				}
 			}
 		}
 		
 		return antinodes.size();
+	}
+	
+	private Set<Coords> getDoubleDistanceAntinodes(Coords firstNode, Coords secondNode) {
+		Set<Coords> antinodes = new HashSet<Coords>();
+		Coords firstOffset = firstNode.getOffsetTo(secondNode);
+		Coords[] tempAntinodes = {secondNode.applyOffset(firstOffset), firstNode.applyOffset(firstOffset.invert())};
+		for (Coords antinode : tempAntinodes) {
+			if (this.isInBounds(antinode)) {
+				antinodes.add(antinode);
+			}
+		}
+		return antinodes;
+	}
+	
+	private Set<Coords> getResonantHarmonicsAntinodes(Coords firstNode, Coords secondNode) {
+		Set<Coords> antinodes = new HashSet<Coords>();
+		Coords slope = firstNode.getOffsetTo(secondNode).reduceSlope();
+		
+		// Go one direction until out of bounds
+		Coords thisNode = secondNode;
+		while (this.isInBounds(thisNode)) {
+			antinodes.add(thisNode);
+			thisNode = thisNode.applyOffset(slope);
+		}
+		
+		// Go the other direction until out of bounds
+		slope = slope.invert();
+		thisNode = secondNode.applyOffset(slope);
+		while (this.isInBounds(thisNode)) {
+			antinodes.add(thisNode);
+			thisNode = thisNode.applyOffset(slope);
+		}
+		
+		return antinodes;
 	}
 	
 	public List<Antenna> getAntennae() {

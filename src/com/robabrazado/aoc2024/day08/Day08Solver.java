@@ -10,17 +10,20 @@ public class Day08Solver extends Solver {
 		super(8);
 		return;
 	}
+	
+	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
+		FrequencyCity city = new FrequencyCity(puzzleInput);
+		return String.valueOf(city.countAntinodes(partOne));
+	}
 
 	@Override
 	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
-		FrequencyCity city = new FrequencyCity(puzzleInput);
-		return String.valueOf(city.countAntinodes());
+		return this.solve(puzzleInput, true, isTest);
 	}
 
 	@Override
 	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.solve(puzzleInput, false, isTest);
 	}
 
 }

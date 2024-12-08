@@ -48,6 +48,26 @@ public class Coords {
 		return new Coords(-this.col, -this.row);
 	}
 	
+	// Returns lowest integral offset that includes this offset
+	public Coords reduceSlope() {
+		Coords slope = this;
+		
+		int maxFactor = Math.min(Math.abs(this.col), Math.abs(this.row)) - 1;
+		int foundFactor = 0; // invalid initial value
+		
+		for (int i = maxFactor; i > 1 && foundFactor == 0; i--) {
+			if (this.col % i == 0 && this.row % i == 0) {
+				foundFactor = i;
+			}
+		}
+		
+		if (foundFactor > 0) {
+			slope = new Coords(this.col / foundFactor, this.row / foundFactor);
+		}
+		
+		return slope;
+	}
+	
 	@Override
 	public String toString() {
 		return "[" + String.valueOf(this.col) + "," + String.valueOf(this.row) + "]";  

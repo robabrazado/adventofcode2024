@@ -73,3 +73,12 @@ This won't be a full report. I've logged answers for Day 7 as far as the puzzle 
 
 [Later on Day 7] **The Day 7 Refactor** I finally sat down and refactored *everything* so that the main entry point now takes advantage of dynamic class loading. This will (hopefully, anyway) result in me much less often just checking in a totally broken build. The other big change for this refactor is that the solvers now take a `Stream<String>` input. More specific to Day 7, I also rewrote Day 7 a bit, but only enough to fit into the refactored framework and to separate parts 1 and 2. That said, I *did* move all the code into a new object. I still haven't rewritten the algorithm, though, so part 2 still runs like shit.
 
+## Day 8: Resonant Collinearity
+
+I took a look at the puzzle before I went to bed, because I had *some* time I could work on it in the morning, but not a lot of time. So I had some time to mull it over before actually coding, and I thought I could at least get part 1 in before I headed out. It turned out part 2 wasn't totally bizarre relative to what I did for part 1, so I ended up being able to do both parts before the rest of my day got underway. So hooray for that! I'm also liking the new structure under yesterday's refactor, though I noticed something else I should refactor, so that'll go on my TODO list, too.
+
+** Spoilers (mild) for Day 8 **
+
+When I first looked at today's puzzle and saw it was more grid stuff, I figured this would, like Day 6, have to wait until I did Day 4. But having the time to think about it before going to bed, I realized I could basically handle it mathematically without having to actually use a grid structure to do it. (Honestly, probably a lot of the grid problems could be done that way, but it's just so much easier to have a grid object around to maintain state. Or...at least I *think* it is. Maybe I should revisit the previous grid problems with the idea in mind that I may not need a grid!) Anyway, once I warmed up to the idea that I wouldn't need an actual matrix, at least for part 1, I decided to give it a shot, and it turned out to work all right. I was a little worried that part 2 would mean I'd need a grid anyway, and I was fully prepared to delay part 2 until I had a grid setup ready, but it turned out I could do both with just math, so...yay for that. Also...there may be some built-in Java way to handle GCF stuff...I forgot to look.
+
+** End spoilers **
