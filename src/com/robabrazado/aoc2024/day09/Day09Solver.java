@@ -14,7 +14,11 @@ public class Day09Solver extends Solver {
 	
 	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		AmphipodDisk disk = new AmphipodDisk(puzzleInput.iterator().next());
-		disk.defragment();
+		if (partOne) {
+			disk.defragment();
+		} else {
+			disk.defragment2();
+		}
 		return disk.checksum();
 	}
 

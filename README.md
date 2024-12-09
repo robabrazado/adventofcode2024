@@ -82,3 +82,17 @@ I took a look at the puzzle before I went to bed, because I had *some* time I co
 When I first looked at today's puzzle and saw it was more grid stuff, I figured this would, like Day 6, have to wait until I did Day 4. But having the time to think about it before going to bed, I realized I could basically handle it mathematically without having to actually use a grid structure to do it. (Honestly, probably a lot of the grid problems could be done that way, but it's just so much easier to have a grid object around to maintain state. Or...at least I *think* it is. Maybe I should revisit the previous grid problems with the idea in mind that I may not need a grid!) Anyway, once I warmed up to the idea that I wouldn't need an actual matrix, at least for part 1, I decided to give it a shot, and it turned out to work all right. I was a little worried that part 2 would mean I'd need a grid anyway, and I was fully prepared to delay part 2 until I had a grid setup ready, but it turned out I could do both with just math, so...yay for that. Also...there may be some built-in Java way to handle GCF stuff...I forgot to look.
 
 ** End spoilers **
+
+## Day 9: Disk Fragmenter
+
+I guess I felt unduly contrarian this puzzle, and my first stab at part 1 was unduly complicated, because I decided to forego the obvious data structure and try something different (more details in spoiler section). When I started getting myself into trouble with that, I almost abandoned ship, but I stuck with it, and I *think* it made my life easier for part 2, but I'm not sure.
+
+Whatever the case, I'm also due for another overall refactor, so...that may or may not happen today, but I have to work on other stuff now. So I may or may not refactor today, but it's coming.
+
+** Spoilers (mild) for Day 9 **
+
+Upon first reading of the puzzle, the obvious (and probably better) choice is to use an array to represent the disk blocks, but I got it in my head that it would end up being too big, so I decided to try something more like a linked list, instead. Actually a double-linked list, because I envisioned myself having to traverse in both directions from both ends. I know I could have used a Deque or even a List, probably, and saved myself a lot of implementation pain, but I dunno...I enjoyed the exercise, and for some reason I had it in my head to just not use anything backed by an array. Anyway...I ran into a little trouble implementing that (of course), and I *almost* gave it up and just went to using an array, instead, but I just decided to live with the sunk cost and just hope it was time well spent for part 2. In brief...I think the choice made most appealing by the puzzle presentation was just an array of disk blocks (so one array element for each block). I think the second choice was an array of objects that mirrored how the disk map was set up, so one element for each file or free space with an associated size. I pretty much went with the latter choice, except using a linked list instead of an array.
+
+When part 2 came around, it felt like the right choice, since I had already baked in the concept of files as nodes instead of having to manage them at the block level. Even so, there's probably no reason I couldn't have done this with an array and just used indexes or something to do the traversals. But, whatever. It was fun, and it ended up working, even if it was a pain implementing the element inserts and shit like that that probably would have been easier just making the file/space object and using a List or so. So it goes.
+
+** End spoilers **

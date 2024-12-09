@@ -1,6 +1,11 @@
 package com.robabrazado.aoc2024.day09;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AmphipodDisk {
 	
@@ -73,6 +78,49 @@ public class AmphipodDisk {
 		return;
 	}
 	
+	public void defragment2() {
+		Map<Integer, BlockNode> fileNodeMap = new HashMap<Integer, BlockNode>();
+		{
+			BlockNode node = this.firstNode;
+			while (node != null) {
+				if (!node.isFreeSpace()) {
+					fileNodeMap.put(node.getFileId(), node);
+				}
+				node = node.getNext();
+			}
+		}
+		List<Integer> fileIds = new ArrayList<Integer>(fileNodeMap.keySet());
+		Collections.sort(fileIds);
+		Collections.reverse(fileIds);
+		
+		for (int fileId : fileIds) {
+			BlockNode fileNode = fileNodeMap.get(fileId);
+			int size = fileNode.getSize();
+			BlockNode freeSpace = this.getFirstFreeSpaceToTheLeft(size, fileId);
+			if (freeSpace != null) {
+				// Move the file node to the new location and leave free space in its wake
+				BlockNode newFreeSpace = new BlockNode(size);
+				
+				if (fileNode.hasPrev()) {
+					fileNode.getPrev().setNext(newFreeSpace);
+				}
+				newFreeSpace.setNext(fileNode.getNext());
+				
+				if (freeSpace.hasPrev()) {
+					freeSpace.getPrev().setNext(fileNode);
+				}
+				fileNode.setNext(freeSpace);
+				freeSpace.decreaseSize(size);
+				
+				// If the free space was completely filled, remove the node from the list
+				if (freeSpace.getSize() == 0) {
+					fileNode.setNext(freeSpace.getNext());
+				}
+			}
+		}
+		return;
+	}
+	
 	// Find the next (as of start) free space node that has a file node after it, or return null if none
 	private static BlockNode getNextFreeSpaceFragment(BlockNode start) {
 		BlockNode nextFrag = start;
@@ -105,6 +153,24 @@ public class AmphipodDisk {
 			prevFile = prevFile.getPrev();
 		}
 		return prevFile;
+	}
+	
+	// Returns first free space of specified size or greater that is left of the specified file (or portion thereof), or return null if none
+	private BlockNode getFirstFreeSpaceToTheLeft(int size, int fileId) {
+		BlockNode firstSpace = null;
+		BlockNode thisNode = this.firstNode;
+		boolean doneLooking = false;
+		
+		while (thisNode != null && firstSpace == null && !doneLooking) {
+			if (thisNode.isFreeSpace() && thisNode.getSize() >= size) {
+				firstSpace = thisNode;
+				doneLooking = true;
+			} else if (thisNode.getFileId() == fileId) {
+				doneLooking = true;
+			}
+			thisNode = thisNode.getNext();
+		}
+		return firstSpace;
 	}
 	
 	public String checksum() {
