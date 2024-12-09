@@ -1,20 +1,21 @@
-package com.robabrazado.aoc2024.day08;
+package com.robabrazado.aoc2024.day09;
 
 import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.Solver;
 
-// --- Day 8: Resonant Collinearity ---
-public class Day08Solver extends Solver {
+// --- Day 9: Disk Fragmenter ---
+public class Day09Solver extends Solver {
 	
-	public Day08Solver() {
-		super(8);
+	public Day09Solver() {
+		super(9);
 		return;
 	}
 	
 	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
-		FrequencyCity city = new FrequencyCity(puzzleInput);
-		return String.valueOf(city.countAntinodes(partOne));
+		AmphipodDisk disk = new AmphipodDisk(puzzleInput.iterator().next());
+		disk.defragment();
+		return disk.checksum();
 	}
 
 	@Override
