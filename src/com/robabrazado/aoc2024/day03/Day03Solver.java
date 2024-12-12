@@ -16,7 +16,15 @@ public class Day03Solver extends Solver {
 	}
 
 	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
+	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
+		if (isPartOne) {
+			return this.solvePart1(puzzleInput);
+		} else {
+			return this.solvePart2(puzzleInput);
+		}
+	}
+	
+	private String solvePart1(Stream<String> puzzleInput) {
 		Pattern p = Pattern.compile("mul\\((\\d{1,3}),(\\d{1,3})\\)");
 		int runningTotal = 0;
 		
@@ -33,8 +41,7 @@ public class Day03Solver extends Solver {
 		return String.valueOf(runningTotal);
 	}
 	
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
+	private String solvePart2(Stream<String> puzzleInput) {
 		/*
 		 * This is my fourth attempt writing this. Originally I had left the code for the previous attempts in 
 		 * as commented code, but they make even less sense after the Day 7 refactoring I did, so now I just

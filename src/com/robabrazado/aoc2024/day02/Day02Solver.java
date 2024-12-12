@@ -14,7 +14,15 @@ public class Day02Solver extends Solver {
 	}
 
 	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
+	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
+		if (isPartOne) {
+			return this.solvePart1(puzzleInput);
+		} else {
+			return this.solvePart2(puzzleInput);
+		}
+	}
+
+	private String solvePart1(Stream<String> puzzleInput) {
 		int safeCounter = 0;
 		
 		Iterator<String> it = puzzleInput.iterator();
@@ -29,8 +37,7 @@ public class Day02Solver extends Solver {
 		return String.valueOf(safeCounter);
 	}
 
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
+	private String solvePart2(Stream<String> puzzleInput) {
 		int safeCounter = 0;
 		
 		Iterator<String> it = puzzleInput.iterator();

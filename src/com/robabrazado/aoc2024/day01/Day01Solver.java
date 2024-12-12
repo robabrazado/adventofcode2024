@@ -21,7 +21,7 @@ public class Day01Solver extends Solver {
 	}
 
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean partOne, boolean testData) {
+	public String solve(Stream<String> puzzleInput, boolean partOne) {
 		String result = null;
 		List<Integer> leftList = new ArrayList<Integer>();
 		List<Integer> rightList = new ArrayList<Integer>();
@@ -79,16 +79,6 @@ public class Day01Solver extends Solver {
 		}
 		countMap.put(num, Integer.valueOf(++oldCount));
 		return;
-	}
-
-	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, true, isTest);
-	}
-
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, false, isTest);
 	}
 
 }

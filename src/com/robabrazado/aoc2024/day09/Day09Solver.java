@@ -12,7 +12,7 @@ public class Day09Solver extends Solver {
 		return;
 	}
 	
-	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
+	@Override public String solve(Stream<String> puzzleInput, boolean partOne) {
 		AmphipodDisk disk = new AmphipodDisk(puzzleInput.iterator().next());
 		if (partOne) {
 			disk.defragment();
@@ -20,16 +20,6 @@ public class Day09Solver extends Solver {
 			disk.defragment2();
 		}
 		return disk.checksum();
-	}
-
-	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, true, isTest);
-	}
-
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, false, isTest);
 	}
 
 }

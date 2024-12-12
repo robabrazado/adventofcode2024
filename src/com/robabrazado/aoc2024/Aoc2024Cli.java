@@ -63,7 +63,7 @@ public class Aoc2024Cli {
 				in = new BufferedReader(new InputStreamReader(Aoc2024Cli.class.getResourceAsStream(strb.toString())));
 				Stream<String> puzzleInput = in.lines();
 				
-				System.out.println(solver.solve(puzzleInput, partOne, testData));
+				System.out.println(solver.solve(puzzleInput, partOne));
 			} else {
 				errMsg = "Invalid arguments";
 				showUsage = true;

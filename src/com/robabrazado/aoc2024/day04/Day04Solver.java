@@ -17,13 +17,8 @@ public class Day04Solver extends Solver {
 	 */
 
 	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
-		throw new RuntimeException("Not yet implememted");
-	}
-
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
-		throw new RuntimeException("Not yet implememted");
+	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
+		throw new RuntimeException("Not yet implemented");
 	}
 	
 }

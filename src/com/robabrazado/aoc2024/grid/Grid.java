@@ -6,6 +6,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * NOTE: I may never use this, and in fact might just delete it. This is half-done and untested.
+ * I may end up just deleting this, but I'm putting in one commit just in case I want to come
+ * back to it.
+ * 
  * Simple 2D array container. This assumes a rectangular collection with [0][0] in the upper left.
  * First index is row, second index is column.
  * 

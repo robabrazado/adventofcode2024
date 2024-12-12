@@ -18,7 +18,7 @@ public class Day05Solver extends Solver {
 	}
 	
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
+	public String solve(Stream<String> puzzleInput, boolean partOne) {
 		// I guess I just...use regex for everything now
 		Pattern pRule = Pattern.compile("(\\d+)\\|(\\d+)");
 		Pattern pOrder = Pattern.compile("(\\d+)");
@@ -66,14 +66,4 @@ public class Day05Solver extends Solver {
 		return String.valueOf(runningTotal);
 	}
 
-	@Override
-	protected String solvePart1(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, true, isTest);
-	}
-
-	@Override
-	protected String solvePart2(Stream<String> puzzleInput, boolean isTest) {
-		return this.solve(puzzleInput, false, isTest);
-	}
-	
 }
