@@ -33,7 +33,7 @@ public class Coords {
 	public Coords applyOffset(Dir d, int steps) {
 		Coords dirOffset = d.getOffset();
 		
-		return new Coords(dirOffset.getCol() * steps, dirOffset.getRow() * steps);
+		return new Coords(this.col + (dirOffset.col * steps), this.row + (dirOffset.row * steps));
 	};
 	
 	public Coords getOffsetTo(Coords other) {

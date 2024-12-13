@@ -12,13 +12,10 @@ public class Day04Solver extends Solver {
 		return;
 	}
 	
-	/*
-	 * TEMPORARY: I'm just gutting this whole thing so it will build for the Day 7 refactor. I'm gonna start over on this one anyway.
-	 */
-
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
-		throw new RuntimeException("Not yet implemented");
+		WordSearch wordSearch = new WordSearch(puzzleInput);
+		return String.valueOf(wordSearch.countXmas());
 	}
 	
 }
