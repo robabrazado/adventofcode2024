@@ -15,7 +15,11 @@ public class Day04Solver extends Solver {
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
 		WordSearch wordSearch = new WordSearch(puzzleInput);
-		return String.valueOf(wordSearch.countXmas());
+		if (isPartOne) {
+			return String.valueOf(wordSearch.countXmas());
+		} else {
+			return String.valueOf(wordSearch.countMasX());
+		}
 	}
 	
 }

@@ -7,8 +7,6 @@ As before, this README serves as kind of blog and running commentary that I'll b
 Shoutouts this year to (1) once again, the fun folks at the [Indie Game Reading Club](https://www.indiegamereadingclub.com/) for their company again and (2) my friend [@codeforkjeff](https://github.com/codeforkjeff) for encouraging me to shake off the coding dust and get back in it.
 
 # What to do with this code
-The current state of affairs (as of Day 1):
-
 Basically, the src folder should be able to be dropped anywhere and compiled with any modern Java compiler. There's nothing too complicated going on here. What I'm **not** doing is checking in any puzzle input. To try out your own input, drop a `resources` directory in your classpath, a `puzzle-input` directory inside that, and then a file with the name format `dayNN-input.txt` where `NN` is a left-zero-padded day number. For "test" input (optionally callable instead of "real" input with a command line argument, instead use the file name format `dayNN-input-test.txt`.
 
 The main entry point is com.robabrazado.aoc2024.Aoc2024Cli, and it takes 2 or 3 command line arguments:
@@ -59,6 +57,8 @@ What first struck me about looking at Jeff's code was that our algorithms were a
 
 Also! I should say I found a huge bug in the original implementation of my Coords object. At this late date, I can't even remember why I decided to implement what I did, but suffice it to say...I did it wrong. So that's been corrected with Day 4 Part 1, too.
 
+[On day 13] Part 2 not so bad. What I did probably isn't the best-performing solution I could have done, but it was fast to implement since I did end up making use of the part 1 functionality.
+
 ## Day 5: Print Queue
 
 I got part 1 relatively quickly, but then had to step away before getting sucked into part 2. When I got around to starting part 2, I had a neato idea that I thought would be pretty fun, and it was, but it was flawed in some way, because it passed test data but not real data. Rather than try and fix it, since it was already unnecessarily complicated, I just did a full rewrite with a way simpler algorithm. The solution I ended up with was *way* easier to implement, but probably isn't going to win any performance or elegance awards. I can also envision plenty of input conditions that would send me into an infinite loop, so it's basically the definition of quick and dirty. It works...but only for now. But! That's how it goes around here sometimes. I did a commit after I realized my first attempt failed, so it's in there for posterity. I dunno...I give myself a D for this one. Passing grade, but barely. :)
@@ -103,5 +103,5 @@ When part 2 came around, it felt like the right choice, since I had already bake
 ** End spoilers **
 
 ## The Day 12 Refactor
-Starting on day 10, I decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up, and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
+Starting on day 10, I had decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up (on my other work), and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
 

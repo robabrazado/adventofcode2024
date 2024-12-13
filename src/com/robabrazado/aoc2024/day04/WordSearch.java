@@ -51,18 +51,61 @@ public class WordSearch {
 	}
 	
 	public int countXmas() {
+		String word = "XMAS";
 		int total = 0;
+		
 		
 		Coords cell = new Coords(0, 0);
 		while (cell != null) {
-			total += this.countFrom("XMAS", cell);
+			total += this.countWordFrom(word, cell);
 			cell = this.nextCell(cell);
 		}
 		
 		return total;
 	}
 	
-	private int countFrom(String word, Coords cell) {
+	public int countMasX() {
+		int total = 0;
+		
+		Coords cell = new Coords(0, 0);
+		while (cell != null) {
+			if (this.isMasX(cell)) {
+				total++;
+			}
+			cell = this.nextCell(cell);
+		}
+		
+		return total;
+	}
+	
+	private boolean isMasX(Coords cell) {
+		String word = "MAS";
+		char centerChar = word.charAt(1);
+		boolean found = false;
+		
+		// First just see if this is a center
+		if (this.charAt(cell) == centerChar) {
+			// One leg of the X
+			Dir testDir = Dir.SE; // Arbitrary starting direction
+			Dir oppDir = testDir.oppositeDirection();
+			
+			// Check first leg
+			if (this.isWordInDir(word, cell.applyOffset(oppDir), testDir) ||
+					this.isWordInDir(word, cell.applyOffset(testDir), oppDir)) {
+				// Other leg of the X
+				testDir = testDir.turnClockwise(2);
+				oppDir = testDir.oppositeDirection();
+				
+				// Check the second leg
+				found = this.isWordInDir(word, cell.applyOffset(oppDir), testDir) ||
+						this.isWordInDir(word, cell.applyOffset(testDir), oppDir);
+			}
+		}
+		
+		return found;
+	}
+	
+	private int countWordFrom(String word, Coords cell) {
 		int total = 0;
 		if (word.length() > 0 && this.charAt(cell) == word.charAt(0)) {
 			for (Dir d : Dir.values()) {
@@ -77,7 +120,8 @@ public class WordSearch {
 	private boolean isWordInDir(String word, Coords cell, Dir d) {
 		boolean found = false;
 		
-		if (word.length() > 0 && this.letters[cell.getRow()][cell.getCol()] == word.charAt(0)) {
+		if (this.isInBounds(cell) && word.length() > 0 &&
+				this.charAt(cell) == word.charAt(0)) {
 			if (word.length() == 1) {
 				found = true;
 			} else {

@@ -35,4 +35,16 @@ public enum Dir {
 	public Coords getOffset() {
 		return this.offset;
 	}
+	
+	public Dir turnClockwise() {
+		return this.turnClockwise(1);
+	}
+	
+	public Dir turnClockwise(int steps) {
+		return Dir.values()[(this.ordinal() + steps) % 8];
+	}
+	
+	public Dir oppositeDirection() {
+		return this.turnClockwise(4);
+	}
 }
