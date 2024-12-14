@@ -110,3 +110,5 @@ Starting on day 10, I had decided to take a few days break from Advent of Code, 
 I've skipped many puzzles at the time I'm working on 14, but for starters, this one made me (un)refactor a change I made in the Day 12 Refactor, notably that now the Solver _does_ need to know whether it's a test run or not, so I've put that parameter back in.
 
 That aside, part 1 went relatively well and was fun to work on. Part 2 looks like it's going to be a royal pain.
+
+[Later] What a pain part 2 was. That's all I have to say about that.

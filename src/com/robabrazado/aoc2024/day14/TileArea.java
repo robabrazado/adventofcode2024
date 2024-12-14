@@ -3,6 +3,7 @@ package com.robabrazado.aoc2024.day14;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -84,4 +85,23 @@ public class TileArea {
 		return d;
 	}
 	
+	@Override
+	public String toString() {
+		char[][] outputMatrix = new char[height][width];
+		for (int i = 0; i < height; i++) {
+			Arrays.fill(outputMatrix[i], '.');
+		}
+		
+		for (Robot r : this.robots) {
+			Coords pos = r.getPosition();
+			outputMatrix[pos.getRow()][pos.getCol()] = '#';
+		}
+		
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw, true);
+		for (char[] arr : outputMatrix) {
+			pw.println(arr);
+		}
+		return sw.toString();
+	}
 }
