@@ -105,3 +105,8 @@ When part 2 came around, it felt like the right choice, since I had already bake
 ## The Day 12 Refactor
 Starting on day 10, I had decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up (on my other work), and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
 
+## Day 14: Restroom Redoubt
+
+I've skipped many puzzles at the time I'm working on 14, but for starters, this one made me (un)refactor a change I made in the Day 12 Refactor, notably that now the Solver _does_ need to know whether it's a test run or not, so I've put that parameter back in.
+
+That aside, part 1 went relatively well and was fun to work on. Part 2 looks like it's going to be a royal pain.

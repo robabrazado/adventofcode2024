@@ -1,5 +1,7 @@
 package com.robabrazado.aoc2024.grid;
 
+import java.util.Arrays;
+
 /**
  * Orientation directions for navigating a 2D space. Made to be used with Grid, so assumes a 2D matrix with 0,0 is the upper left
  * space with col increasing to the east (right) and row increasing downward (south). Iterating order starts NW and proceeds clockwise.
@@ -13,6 +15,9 @@ public enum Dir {
 	W	(-1, 0),
 	NW	(-1, -1),
 	N	(0, -1);
+	
+	private static final Dir[] CARDINALS = new Dir[] {Dir.E, Dir.S, Dir.W, Dir.N};
+	private static final Dir[] DIAGONALS = new Dir[] {Dir.NE, Dir.SE, Dir.SW, Dir.NW};
 	
 	private final int colOffset;
 	private final int rowOffset;
@@ -46,5 +51,13 @@ public enum Dir {
 	
 	public Dir oppositeDirection() {
 		return this.turnClockwise(4);
+	}
+	
+	public static Dir[] cardinals() {
+		return Arrays.copyOf(Dir.CARDINALS, 4);
+	}
+	
+	public static Dir[] diagonals() {
+		return Arrays.copyOf(Dir.DIAGONALS, 4);
 	}
 }
