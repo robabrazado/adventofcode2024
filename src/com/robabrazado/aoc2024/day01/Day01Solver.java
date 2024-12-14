@@ -21,7 +21,7 @@ public class Day01Solver extends Solver {
 	}
 
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean partOne) {
+	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		String result = null;
 		List<Integer> leftList = new ArrayList<Integer>();
 		List<Integer> rightList = new ArrayList<Integer>();

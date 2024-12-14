@@ -16,7 +16,7 @@ public class Day03Solver extends Solver {
 	}
 
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
+	public String solve(Stream<String> puzzleInput, boolean isPartOne, boolean isTest) {
 		if (isPartOne) {
 			return this.solvePart1(puzzleInput);
 		} else {

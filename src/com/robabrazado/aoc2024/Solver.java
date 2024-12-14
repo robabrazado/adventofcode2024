@@ -17,9 +17,10 @@ public abstract class Solver {
 	 * 
 	 * @param puzzleInput a Stream of String lines of puzzle input
 	 * @param isPartOne {@code true} for part one; {@code false} for part two
+	 * @param isTest {@code true} to solve in test mode; {@code false} otherwise
 	 * @return the result of the solution
 	 */
-	public abstract String solve(Stream<String> puzzleInput, boolean isPartOne);
+	public abstract String solve(Stream<String> puzzleInput, boolean isPartOne, boolean isTest);
 	
 	public int getDay() {
 		return this.day;

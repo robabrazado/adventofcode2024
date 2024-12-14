@@ -12,7 +12,7 @@ public class Day09Solver extends Solver {
 		return;
 	}
 	
-	@Override public String solve(Stream<String> puzzleInput, boolean partOne) {
+	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		AmphipodDisk disk = new AmphipodDisk(puzzleInput.iterator().next());
 		if (partOne) {
 			disk.defragment();

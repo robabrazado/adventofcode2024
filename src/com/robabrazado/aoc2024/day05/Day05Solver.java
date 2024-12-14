@@ -18,7 +18,7 @@ public class Day05Solver extends Solver {
 	}
 	
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean partOne) {
+	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		// I guess I just...use regex for everything now
 		Pattern pRule = Pattern.compile("(\\d+)\\|(\\d+)");
 		Pattern pOrder = Pattern.compile("(\\d+)");

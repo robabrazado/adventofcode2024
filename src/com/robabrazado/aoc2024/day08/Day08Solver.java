@@ -12,7 +12,7 @@ public class Day08Solver extends Solver {
 		return;
 	}
 	
-	@Override public String solve(Stream<String> puzzleInput, boolean partOne) {
+	@Override public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		FrequencyCity city = new FrequencyCity(puzzleInput);
 		return String.valueOf(city.countAntinodes(partOne));
 	}

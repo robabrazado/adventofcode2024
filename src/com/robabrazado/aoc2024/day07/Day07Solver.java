@@ -12,7 +12,7 @@ public class Day07Solver extends Solver {
 	}
 	
 	@Override
-	public String solve(Stream<String> puzzleInput, boolean isPartOne) {
+	public String solve(Stream<String> puzzleInput, boolean isPartOne, boolean isTest) {
 		Equationator equationator = new Equationator(puzzleInput);
 		return equationator.solve(isPartOne);
 	}
