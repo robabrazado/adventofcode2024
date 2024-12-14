@@ -74,6 +74,9 @@ public class Day14Solver extends Solver {
 				if (state.contains("#######")) {
 					System.out.println("Check step " + String.valueOf(step));
 				}
+				/* It occurs to me only after the fact: I could have just searched for the string
+				 * in the dump file; I didn't have to keep re-running the program. OH WELL.
+				 */
 
 				area.advance(1);
 				state = area.toString();
