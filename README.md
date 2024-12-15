@@ -112,3 +112,13 @@ I've skipped many puzzles at the time I'm working on 14, but for starters, this 
 That aside, part 1 went relatively well and was fun to work on. Part 2 looks like it's going to be a royal pain.
 
 [Later] What a pain part 2 was. That's all I have to say about that.
+
+[On day 15] I sort of redid part 2, because it was bothering me, but even so, it's still not what I'd call a rigorous general solution. I left the old version in as commented code, though.
+
+## Day 15: Warehouse Woes
+
+Part 1 seemed straightforward enough that I was very suspicious of every assumption I made to implement it, because I couldn't even guess as to what the part 2 twist might be. The part 2 twist turned out to be _very_ twisty, so I basically had to recode everything. Granted, at this time of this writing, I've skipped a lot of the previous puzzles, but for me in this timeline, it's the first time I have two completely different objects to handle parts 1 and 2. (And for once, I didn't regret putting an enum as an inner class, because I had to redo it for part 2 anyway.) Still, it was a good puzzle day! I enjoyed both parts.
+
+Also, there's some code style inconsistency with this day, because I only remembered like halfway through part 2 that I could use switch-case on enums. :) So it goes!
+
+Just a small side note: I'm getting more and more fond of backing grid-like puzzles with non-grid backing implementations...until it comes time to make a `toString()`. If I was never doing visualizations, I wouldn't have to be mucking around with 2D arrays so much. That's not a complaint, though...just an observation. It does make me wonder if I'm saving myself anything by not using 2D arrays just from the get-go, but I think it's good practice regardless.
