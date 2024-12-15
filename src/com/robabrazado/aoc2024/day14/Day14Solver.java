@@ -1,11 +1,18 @@
 package com.robabrazado.aoc2024.day14;
 
+import java.io.BufferedReader;
+/* Uncomment this block of imports if you uncomment the "original" solution in solve2()
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+*/
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.Solver;
@@ -34,10 +41,6 @@ public class Day14Solver extends Solver {
 	}
 	
 	private String solve2(Stream<String> puzzleInput, boolean isTest) {
-		// Tests indicate that the state repeats after 10403 advances, so at least there's an upper limit
-		// 10K frames can't be that much to go through, can it???
-		// Spoiler: it was a lot.
-		
 		/*
 		TileArea area = new TileArea(puzzleInput, isTest);
 		
@@ -50,8 +53,20 @@ public class Day14Solver extends Solver {
 		}
 		return String.valueOf(counter);
 		*/
+		// Tests indicate that the state repeats after 10403 advances, so at least there's an upper limit
+		// 10K frames can't be that much to go through, can it???
+		// Spoiler: it was a lot.
 		
-		
+		/*
+		 * The block below was what I used to solve the puzzle day of. I don't like it because (a) it drops
+		 * a new file on the file system and (b) it needs code revision to really "work" PLUS human review
+		 * of the results (though, really, I don't see a way around human review on this one).
+		 * 
+		 * I'm leaving this as a comment block, but I'm rejiggering it to do more without involving external
+		 * operations.
+		 * 
+		 * If you want to uncomment this block, you'll also need to uncomment several import statements above.
+		 * 
 		TileArea area = new TileArea(puzzleInput, isTest);
 		List<String> history = new ArrayList<String>();
 		String state = area.toString();
@@ -74,9 +89,8 @@ public class Day14Solver extends Solver {
 				if (state.contains("#######")) {
 					System.out.println("Check step " + String.valueOf(step));
 				}
-				/* It occurs to me only after the fact: I could have just searched for the string
-				 * in the dump file; I didn't have to keep re-running the program. OH WELL.
-				 */
+				// It occurs to me only after the fact: I could have just searched for the string
+				// in the dump file; I didn't have to keep re-running the program. OH WELL.
 
 				area.advance(1);
 				state = area.toString();
@@ -92,5 +106,56 @@ public class Day14Solver extends Solver {
 		}
 		
 		return null;
+		 */
+		
+		/*
+		 * Here I'm taking a more general shot, but it's not what I actually used as this part's "entry,"
+		 * and it's tainted anyway, because I'm already more familiar with the answer. I guess just...the
+		 * theory is sound? Ish?
+		 * 
+		 * The main assumption here is that the sought-after state is the one with the longest horizontal
+		 * line. The secondary assumption is that the states are ultimately cyclical; otherwise this will
+		 * just loop forever.
+		 * 
+		 * So...bottom line is that I know this will work with my specific puzzle input, but there are
+		 * many ways that this solution could fail in the general case.
+		 */
+		TileArea area = new TileArea(puzzleInput, isTest);
+		List<String> history = new ArrayList<String>();
+		String state = area.toString();
+		int step = 0;
+		int resultStep = -1;
+		Pattern p = Pattern.compile("#+");
+		int longestLineLen = 0;
+		
+		
+		while (!history.contains(state)) {
+			BufferedReader br = new BufferedReader(new StringReader(state));
+			Iterator<String> it = br.lines().iterator();
+			while (it.hasNext()) {
+				String line = it.next();
+				Matcher m = p.matcher(line);
+				while (m.find()) {
+					int len = m.group().length();
+					if (len > longestLineLen) {
+						longestLineLen = len;
+						resultStep = step;
+					}
+				}
+			}
+			
+			history.add(state);
+			area.advance(1);
+			state = area.toString();
+			step++;
+		}
+		
+		if (resultStep < 0) {
+			throw new RuntimeException("Couldn't even find a candidate frame");
+		}
+		
+		System.out.println(history.get(resultStep));
+		
+		return String.valueOf(resultStep);
 	}
 }
