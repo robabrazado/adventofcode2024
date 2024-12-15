@@ -1,7 +1,9 @@
 package com.robabrazado.aoc2024.day06;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -13,7 +15,7 @@ public class Lab {
 	private final int width;
 	private final int height;
 	private final Guard guard;
-	private final Set<Coords> guardVisited = new HashSet<Coords>();
+	private final Map<Coords, Set<Dir>> guardVisited = new HashMap<Coords, Set<Dir>>();
 	
 	public Lab(Stream<String> puzzleInput) {
 		Iterator<String> it = puzzleInput.iterator();
@@ -61,6 +63,15 @@ public class Lab {
 		this.guard = tempGuard;
 	}
 	
+	private Lab(Set<Coords> obstacles, int width, int height, Guard guard, Map<Coords, Set<Dir>> guardVisisted) {
+		this.width = width;
+		this.height = height;
+		this.guard = guard;
+		this.obstacles.addAll(obstacles);
+		this.guardVisited.putAll(guardVisisted);
+		return;
+	}
+	
 	public int getWidth() {
 		return this.width;
 	}
@@ -73,17 +84,31 @@ public class Lab {
 		return this.guard;
 	}
 	
-	public void patrol() {
-		while (this.isInBounds(this.guard.getPosition())) {
-			this.guardVisited.add(this.guard.getPosition());
-			Coords lookAhead = this.guard.getLookAhead();
-			if (this.obstacles.contains(lookAhead)) {
-				this.guard.turnRight();
+	// Returns true if guard left the lab; false if guard stuck in a loop
+	public boolean patrolUntilGone() {
+		boolean leaving = true;
+		Coords position = this.guard.getPosition();
+		while (this.isInBounds(position) && leaving) {
+			if (!this.guardVisited.containsKey(position)) {
+				this.guardVisited.put(position, new HashSet<Dir>());
+			}
+			// If the guard has previously been in this position in this direction, guard is in a loop
+			if (this.guardVisited.get(position).contains(this.guard.getFacing())) {
+				leaving = false;
 			} else {
-				this.guard.goForward();
+				this.guardVisited.get(position).add(this.guard.getFacing());
+			}
+			if (leaving) {
+				Coords lookAhead = this.guard.getLookAhead();
+				if (this.obstacles.contains(lookAhead)) {
+					this.guard.turnRight();
+				} else {
+					this.guard.goForward();
+				}
+				position = this.guard.getPosition();
 			}
 		}
-		return;
+		return leaving;
 	}
 	
 	public int getGuardVisitedCount() {
@@ -96,5 +121,28 @@ public class Lab {
 		
 		return col >= 0 && col < this.width &&
 				row >= 0 && row < this.height;
+	}
+
+	public void addObstacle(Coords obstacle) {
+		this.obstacles.add(obstacle);
+		return;
+	}
+	
+	public Set<Coords> getNewObstacleCandidates() {
+		Set<Coords> result = new HashSet<Coords>();
+		for (int col = 0; col < this.width; col++) {
+			for (int row = 0; row < this.height; row++) {
+				Coords c = new Coords(col, row);
+				if (!this.obstacles.contains(c) && !this.guard.getPosition().equals(c)) {
+					result.add(c);
+				}
+			}
+		}
+		return result;
+	}
+	
+	public Lab copy() {
+		return new Lab(this.obstacles, this.width, this.height,
+				new Guard(this.guard.getPosition(), this.guard.getFacing()), this.guardVisited);
 	}
 }
