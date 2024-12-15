@@ -21,7 +21,7 @@ import com.robabrazado.aoc2024.Solver;
 public class Day14Solver extends Solver {
 	
 	public Day14Solver() {
-		super(9);
+		super(14);
 		return;
 	}
 	
