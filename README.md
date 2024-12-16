@@ -104,6 +104,10 @@ When part 2 came around, it felt like the right choice, since I had already bake
 
 ** End spoilers **
 
+## Day 10: Hoof it
+
+[On day 15] All things considered, this one went pretty fast, but I took a *lot* of shortcuts. My inner class is...lazy, I'd call it. I have separate methods for handling part 1 and part 2, and part 2 is mostly just copy-pasted from part 1. I know in my gut that means suboptimal design, because I should be reusing code instead of duplicating it. Plus I know the loop structure is a complete mess, performance-wise. I mean, in practical terms, it runs fast enough, but in academic terms it's pretty inefficient. But, again...I'm playing a lot of catchup today, so I'm just going to live with it.
+
 ## The Day 12 Refactor
 Starting on day 10, I had decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up (on my other work), and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
 

@@ -79,6 +79,42 @@ public class TopographicMap {
 		return result;
 	}
 	
+	public int sumTrailheadRatings() {
+		int result = 0;
+		Dir[] dirs = Dir.cardinals();
+		
+		// I'm going to see if I can do this basically the same way I did the scores for part 1
+		// Same (terrible) looping, but instead of looking at neighbor scores, it looks at neighbor paths.
+		// Peaks have a path of ""; everyone else has a string of directions "NSW..."
+		for (int height = 9; height >= 0; height--) {
+			Set<Coords> cs = this.getLocationsWithHeight(height);
+			for (Coords c : cs) {
+				Cell me = this.getCell(c);
+				if (me.height == 9) {
+					me.pathsToPeaks.add("");
+				} else {
+					for (Dir d : dirs) {
+						Coords checking = c.applyOffset(d);
+						if (this.isInBounds(checking)) {
+							Cell other = this.getCell(checking);
+							if (other.height == me.height + 1 && other.pathsToPeaks.size() > 0) {
+								for (String otherPath : other.pathsToPeaks) {
+									me.pathsToPeaks.add(d.name() + otherPath);
+								}
+							}
+						}
+					}
+					if (me.height == 0) {
+						result += me.pathsToPeaks.size();
+					}
+				}
+			}
+		}
+		
+		return result;
+		
+	}
+	
 	private Cell getCell(Coords c) {
 		return this.grid[c.getRow()][c.getCol()];
 	}
@@ -120,6 +156,7 @@ public class TopographicMap {
 	private class Cell {
 		final int height;
 		final Set<Coords> canReachPeak = new HashSet<Coords>();
+		final Set<String> pathsToPeaks = new HashSet<String>();
 		
 		Cell(int height) {
 			this.height = height;

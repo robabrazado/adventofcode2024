@@ -15,7 +15,11 @@ public class Day10Solver extends Solver {
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		TopographicMap map = new TopographicMap(puzzleInput);
-		return String.valueOf(map.sumTrailheadScores());
+		if (partOne) {
+			return String.valueOf(map.sumTrailheadScores());
+		} else {
+			return String.valueOf(map.sumTrailheadRatings());
+		}
 	}
 	
 }
