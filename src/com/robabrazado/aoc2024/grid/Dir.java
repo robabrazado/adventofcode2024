@@ -46,7 +46,11 @@ public enum Dir {
 	}
 	
 	public Dir turnClockwise(int steps) {
-		return Dir.values()[(this.ordinal() + steps) % 8];
+		int newOrdinal = (this.ordinal() + steps) % 8;
+		if (newOrdinal < 0) {
+			newOrdinal += 8;
+		}
+		return Dir.values()[newOrdinal];
 	}
 	
 	public Dir oppositeDirection() {
