@@ -108,8 +108,19 @@ When part 2 came around, it felt like the right choice, since I had already bake
 
 [On day 15] All things considered, this one went pretty fast, but I took a *lot* of shortcuts. My inner class is...lazy, I'd call it. I have separate methods for handling part 1 and part 2, and part 2 is mostly just copy-pasted from part 1. I know in my gut that means suboptimal design, because I should be reusing code instead of duplicating it. Plus I know the loop structure is a complete mess, performance-wise. I mean, in practical terms, it runs fast enough, but in academic terms it's pretty inefficient. But, again...I'm playing a lot of catchup today, so I'm just going to live with it.
 
+## Day 11: Plutonian Pebbles
+
+[On day 18] So...at the time of this writing, I'm still in the midst of failing to do Day 16 (meaning 16-18 remain undone, plus I haven't done 11-13 yet, either), so I went back to catch up on some "easier" stuff. Part 1 was straightforward and I just went with a straight-up implementation of the algorithm as presented in the puzzle. Part 2 seemed like a simple change of an input parameter, but it was taking so long that I did a rewrite. Not of the algorithm, mind you, but of the underlying data structure, like a chump. Turned out the data structure wasn't the problem; it really WAS the algorithm that was taking so long, so eventually I just decided to let it run and come back later. I'm finding this year that, since I'm so short on time, I'm doing a lot more of throwing my hands in the air and going "oh, well!" even when I know I've coded a bad solution.
+
+[Later] Welp. I let it run and was on my way out to do errands, but before I left, it ran out of memory. Back to the drawing board on this, I guess, but now I'm still going out for errands, so this will have to wait.
+
+[On day 22] Okay, so...I'm pretty sure I got it to the point where it wouldn't run out of memory (on day 18) but would still take a hell of a lot of time to run. I'll admit, I just let it chug away for like two or three days, figuring I'd just live with the shame, but eventually I had to throw in the towel and just admit that I need a better algorithm. Trying out some other puzzles, and I'll come back to this one. At the time of this writing, I'm committing part 1 of day 12, but I'm still way, way behind.
+
 ## The Day 12 Refactor
 Starting on day 10, I had decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up (on my other work), and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
+
+## Day 12: Garden Groups
+[On day 22] Just dashing off a note in here for the part 1 commit. Part 2 is sufficiently different that I already know I'll be doing some significant rewriting.
 
 ## Day 14: Restroom Redoubt
 
