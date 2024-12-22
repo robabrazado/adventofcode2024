@@ -67,12 +67,12 @@ public class Garden {
 			
 			// Start a new region
 			Region thisRegion = new Region(myPlant);
-			Deque<Coords> inRegion = new ArrayDeque<Coords>();
+			Deque<Coords> inRegionUnexamined = new ArrayDeque<Coords>();
 			result.add(thisRegion);
-			inRegion.add(myCoords);
+			inRegionUnexamined.add(myCoords);
 			
-			while (!inRegion.isEmpty()) {
-				myCoords = inRegion.poll();
+			while (!inRegionUnexamined.isEmpty()) {
+				myCoords = inRegionUnexamined.poll();
 				// I am always in my region
 				thisRegion.area++;
 				
@@ -82,14 +82,50 @@ public class Garden {
 					if (this.isInBounds(neighborCoords) && myPlant == this.getPlantAt(neighborCoords)) {
 						// Neighbor is in region; move neighbor from unregioned queue to this region's queue (if not already examined)
 						if (unregionedCells.remove(neighborCoords)) {
-							inRegion.add(neighborCoords);
+							inRegionUnexamined.add(neighborCoords);
 						}
 					} else {
-						// Neighbor is not in region (or edge of garden); this is a perimeter side
+						// Neighbor is not in region (or edge of garden); this is a plot perimeter
 						thisRegion.perimeter++;
+						
+						/* Check for region "sides" (part 2).
+						 * 
+						 * This might be a little dirty, but we'll see if it works. I'm considering a "side" to
+						 * always "start" on the "left" and grow toward the "right" if the side were oriented as being
+						 * on the top. So...sides on the N edge run from W to E, sides on the E edge run from N to S, etc.
+						 * In this way, I can always check if a plot edge is the "start" of a side or not, and that will
+						 * be the only time I'll count it as a side.
+						 * 
+						 * The direction I'm currently checking will be which edge the perimeter is on, so it will run to the
+						 * direction to my right (a clockwise turn), as if I'm facing the side in question. So, to determine
+						 * if it's the start of a side, I will check if there's a coterminous plot perimeter to my left
+						 * (a counterclockwise turn) that's part of my region.
+						 */
+						Coords leftCoords = myCoords.applyOffset(d.turnClockwise(-2));
+						Coords leftForwardCoords = leftCoords.applyOffset(d);
+						/* This starts a side if the plot to my left (a) doesn't exist, (b) is not in my region, or
+						 * (c) is in my region but doesn't have a counterpart perimeter to this one.
+						 */
+						// I'm aware that this logic tree could be simplified, but I don't have the brain power right now.
+						boolean isSideStart;
+						if (this.isInBounds(leftCoords)) {
+							char leftPlant = this.getPlantAt(leftCoords);
+							if (leftPlant == myPlant) {
+								isSideStart = !(!this.isInBounds(leftForwardCoords) || this.getPlantAt(leftForwardCoords) != myPlant);
+							} else {
+								isSideStart = true;
+							}
+						} else {
+							isSideStart = true;
+						}
+						if (isSideStart) {
+							thisRegion.sides++;
+						}
 					}
 				}
 			} // Once region queue is exhausted, this region is closed
+			
+			
 		} // Continue checking unregioned cells
 		
 		return result;
@@ -110,6 +146,7 @@ public class Garden {
 		private final char plant;
 		private int area = 0;
 		private int perimeter = 0;
+		private int sides = 0;
 		
 		Region(char c) {
 			this.plant = c;
@@ -128,9 +165,13 @@ public class Garden {
 			return this.perimeter;
 		}
 		
+		public int getSides() {
+			return this.sides;
+		}
+		
 		@Override
 		public String toString() {
-			return String.format("%c region area %d perimeter %d", this.plant, this.area, this.perimeter);
+			return String.format("%c region: %d area; %d perimiter; %d sides", this.plant, this.area, this.perimeter, this.sides);
 		}
 	}
 }

@@ -21,7 +21,11 @@ public class Day12Solver extends Solver {
 		int total = 0;
 		for (Garden.Region region : regions) {
 			System.out.println(region);
-			total += (region.getArea() * region.getPerimeter());
+			if (partOne) {
+				total += (region.getArea() * region.getPerimeter());
+			} else {
+				total += (region.getArea() * region.getSides());
+			}
 		}
 		return String.valueOf(total);
 	}

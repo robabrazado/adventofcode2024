@@ -122,6 +122,8 @@ Starting on day 10, I had decided to take a few days break from Advent of Code, 
 ## Day 12: Garden Groups
 [On day 22] Just dashing off a note in here for the part 1 commit. Part 2 is sufficiently different that I already know I'll be doing some significant rewriting.
 
+[A bit later] Well...I didn't to the rewrite. I just tacked on some extra and ugly code, and seems to do fine. Definitely not the cleanest solution, but it works and doesn't take days to run, so I'll take it.
+
 ## Day 14: Restroom Redoubt
 
 I've skipped many puzzles at the time I'm working on 14, but for starters, this one made me (un)refactor a change I made in the Day 12 Refactor, notably that now the Solver _does_ need to know whether it's a test run or not, so I've put that parameter back in.
