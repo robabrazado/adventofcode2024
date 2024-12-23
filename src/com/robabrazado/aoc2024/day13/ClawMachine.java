@@ -1,5 +1,6 @@
 package com.robabrazado.aoc2024.day13;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -7,18 +8,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import com.robabrazado.aoc2024.grid.Coords;
-
 public class ClawMachine {
 	private static final Pattern PATTERN_A = Pattern.compile("Button A: X\\+(\\d+), Y\\+(\\d+)");
 	private static final Pattern PATTERN_B = Pattern.compile("Button B: X\\+(\\d+), Y\\+(\\d+)");
 	private static final Pattern PATTERN_PRIZE = Pattern.compile("Prize: X=(\\d+), Y=(\\d+)");
+	private static final BigInteger PART_TWO_ADDITIONAL = new BigInteger("10000000000000");
 	
-	private final Coords offsetA;
-	private final Coords offsetB;
-	private final Coords prize;
+	// Thanks to part 2, I can't use Coords for these anymore
+	private final BigTuple offsetA;
+	private final BigTuple offsetB;
+	private final BigTuple prize;
 	
-	private ClawMachine(Coords offsetA, Coords offsetB, Coords prize) {
+	private ClawMachine(BigTuple offsetA, BigTuple offsetB, BigTuple prize) {
 		this.offsetA = offsetA;
 		this.offsetB = offsetB;
 		this.prize = prize;
@@ -26,8 +27,8 @@ public class ClawMachine {
 	}
 	
 	// Returns -1 if prize unreachable
-	public int getLowestPrizeCost() {
-		int result = -1;
+	public BigInteger getLowestPrizeCost() {
+		BigInteger result = BigInteger.ONE.negate();
 		
 		/*
 		 * This is just math, right? We've got two independent variables (the number of presses
@@ -60,17 +61,21 @@ public class ClawMachine {
 		 * So we can get Nb, which means we can get Na. If both Na and Nb are non-negative integers,
 		 * we can claim the prize and know how much it costs (3Na + Nb).
 		 */
-		int nbNumerator = (this.offsetA.getCol() * this.prize.getRow()) - (this.offsetA.getRow() * this.prize.getCol());
-		int nbDenominator = (this.offsetA.getCol() * this.offsetB.getRow()) - (this.offsetA.getRow() * this.offsetB.getCol());
-		int nb = nbNumerator / nbDenominator; // May not be for real!
+		BigInteger nbNumerator = this.offsetA.x.multiply(this.prize.y).subtract(this.offsetA.y.multiply(this.prize.x));
+		BigInteger nbDenominator = this.offsetA.x.multiply(this.offsetB.y).subtract(this.offsetA.y.multiply(this.offsetB.x));
 		
-		if (nb >= 0 && (nbNumerator % nbDenominator == 0)) {
-			int naNumerator = (this.prize.getCol() - (this.offsetB.getCol() * nb));
-			int naDenominator = this.offsetA.getCol();
-			int na = naNumerator / naDenominator;
-			
-			if (na > 0 && (naNumerator % naDenominator == 0)) {
-				result = (na * 3) + nb;
+		if (nbNumerator.remainder(nbDenominator).equals(BigInteger.ZERO)) {
+			BigInteger nb = nbNumerator.divide(nbDenominator);
+			if (nb.compareTo(BigInteger.ZERO) >= 0) {
+				BigInteger naNumerator = this.prize.x.subtract(this.offsetB.x.multiply(nb));
+				BigInteger naDenominator = this.offsetA.x;
+				
+				if (naNumerator.remainder(naDenominator).equals(BigInteger.ZERO)) {
+					BigInteger na = naNumerator.divide(naDenominator);
+					if (na.compareTo(BigInteger.ZERO) >= 0) {
+						result = na.multiply(BigInteger.valueOf(3)).add(nb);
+					}
+				}
 			}
 		}
 		
@@ -82,7 +87,7 @@ public class ClawMachine {
 		return "A: " + this.offsetA + "; B: " + this.offsetB + "; Prize: " + this.prize; 
 	}
 	
-	public static List<ClawMachine> parseClawMachines(Stream<String> puzzleInput) {
+	public static List<ClawMachine> parseClawMachines(Stream<String> puzzleInput, boolean partOne) {
 		List<ClawMachine> result = new ArrayList<ClawMachine>();
 		Iterator<String> it = puzzleInput.iterator();
 		
@@ -97,10 +102,15 @@ public class ClawMachine {
 				}
 			}
 			
+			BigTuple tempPrize = ClawMachine.parseInit(PATTERN_PRIZE, buffer[2]);
+			if (!partOne) {
+				tempPrize = new BigTuple(tempPrize.x.add(PART_TWO_ADDITIONAL),
+						tempPrize.y.add(PART_TWO_ADDITIONAL));
+			}
 			result.add(new ClawMachine(
 					ClawMachine.parseInit(PATTERN_A, buffer[0]),
 					ClawMachine.parseInit(PATTERN_B, buffer[1]),
-					ClawMachine.parseInit(PATTERN_PRIZE, buffer[2])
+					tempPrize
 			));
 			
 			if (it.hasNext()) {
@@ -114,14 +124,14 @@ public class ClawMachine {
 		return result;
 	}
 	
-	private static Coords parseInit(Pattern p, String s) {
+	private static BigTuple parseInit(Pattern p, String s) {
 		Matcher m = p.matcher(s);
 		if (m.find()) {
-			return new Coords(Integer.valueOf(m.group(1)), Integer.valueOf(m.group(2)));
+			return new BigTuple(new BigInteger(m.group(1)), new BigInteger(m.group(2)));
 		} else {
 			throw new RuntimeException("Unrecognized puzzle input: " + s);
 		}
 	}
 	
-	
+	private record BigTuple(BigInteger x, BigInteger y) {}
 }

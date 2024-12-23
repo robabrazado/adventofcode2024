@@ -1,5 +1,6 @@
 package com.robabrazado.aoc2024.day13;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -15,17 +16,18 @@ public class Day13Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
-		int result = 0;
-		List<ClawMachine> clawMachines = ClawMachine.parseClawMachines(puzzleInput);
+		BigInteger result = BigInteger.ZERO;
+		List<ClawMachine> clawMachines = ClawMachine.parseClawMachines(puzzleInput, partOne);
 		for (ClawMachine machine : clawMachines) {
 			System.out.println(machine);
-			int prizeCost = machine.getLowestPrizeCost();
-			System.out.println("Lowest cost prize costs " + String.valueOf(prizeCost));
-			if (prizeCost > 0) {
-				result += prizeCost;
+			BigInteger prizeCost = machine.getLowestPrizeCost();
+			System.out.println("Lowest cost prize costs " + prizeCost);
+			if (prizeCost.compareTo(BigInteger.ZERO) > 0) {
+				result = result.add(prizeCost);
 			}
+			System.out.println("New result: " + result);
 		}
-		return String.valueOf(result);
+		return result.toString();
 	}
 	
 }

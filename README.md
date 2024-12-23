@@ -124,6 +124,10 @@ Starting on day 10, I had decided to take a few days break from Advent of Code, 
 
 [A bit later] Well...I didn't to the rewrite. I just tacked on some extra and ugly code, and seems to do fine. Definitely not the cleanest solution, but it works and doesn't take days to run, so I'll take it.
 
+## Day 13: Day 13: Claw Contraption
+
+[On day 22] I had initial thoughts of just searching through a virtual search space (like...each button press would be like a node, etc.), but at some point I realized I could just do this with math. I think that saved me a ton of time going into part 2. I _did_ however, have to rewrite everything with BigInteger instead of int. I maybe could have used long? But why take the chance.
+
 ## Day 14: Restroom Redoubt
 
 I've skipped many puzzles at the time I'm working on 14, but for starters, this one made me (un)refactor a change I made in the Day 12 Refactor, notably that now the Solver _does_ need to know whether it's a test run or not, so I've put that parameter back in.
