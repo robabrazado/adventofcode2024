@@ -124,7 +124,7 @@ Starting on day 10, I had decided to take a few days break from Advent of Code, 
 
 [A bit later] Well...I didn't to the rewrite. I just tacked on some extra and ugly code, and seems to do fine. Definitely not the cleanest solution, but it works and doesn't take days to run, so I'll take it.
 
-## Day 13: Day 13: Claw Contraption
+## Day 13: Claw Contraption
 
 [On day 22] I had initial thoughts of just searching through a virtual search space (like...each button press would be like a node, etc.), but at some point I realized I could just do this with math. I think that saved me a ton of time going into part 2. I _did_ however, have to rewrite everything with BigInteger instead of int. I maybe could have used long? But why take the chance.
 
@@ -145,3 +145,30 @@ Part 1 seemed straightforward enough that I was very suspicious of every assumpt
 Also, there's some code style inconsistency with this day, because I only remembered like halfway through part 2 that I could use switch-case on enums. :) So it goes!
 
 Just a small side note: I'm getting more and more fond of backing grid-like puzzles with non-grid backing implementations...until it comes time to make a `toString()`. If I was never doing visualizations, I wouldn't have to be mucking around with 2D arrays so much. That's not a complaint, though...just an observation. It does make me wonder if I'm saving myself anything by not using 2D arrays just from the get-go, but I think it's good practice regardless.
+
+## Day 16: Reindeer Maze
+
+[On day 22] I'm not even checking any code in for this yet. I did start working on it on day 16 but quickly ran into trouble, and eventually I just had to abandon ship and go to bed. At the time of this writing, it's been long enough that I don't even remember what I was stuck on, so when I do get back to this one, I might end up starting from scratch. We'll see.
+
+## Day 17: Chronospatial Computer
+
+
+
+## Day 18: RAM Run
+
+
+
+## Day 19: Linen Layout
+
+
+
+## Day 20: Race Condition
+
+
+
+## Day 21: Keypad Conundrum
+
+[On day 22] I started work on this on day 21 but bungled it somehow. As with Day 16, by the time I end up getting back to this, I might start over.
+
+## Day 22: Monkey Market
+
