@@ -173,3 +173,9 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 ## Day 22: Monkey Market
 
 I wasn't even going to start a new puzzle today, but the description for part 1 seemed so straightforward that I assumed either part 2 would be way complicated, or else I was fooling myself and part 1 would take forever with a naive implementation. I rolled the dice, though, and got part 1 relatively quickly. Then, of course, part 2 is *way* more complicated, so I'm not going to try that tonight. Until next time, monkeys!
+
+## Day 23: LAN Party
+
+I thought I could dash off part 1 real quick over lunch...but it turned out I misunderstood the assignment. Just as well...what I wrote was very quick and very ugly, and it didn't work, to boot. I'm not even committing it. I'll just be coming back to this one later when I have some time, but I'll have to start over.
+
+[Later] I rewrote part 1, now understanding what was being asked. Seems to work well! Sadly, it doesn't seem like what I wrote is going to help me with part 2, despite me trying to make it more general use than what they were asking! I'll need a new approach to tackle part 2.
