@@ -47,7 +47,7 @@ even *less* sense in light of the refactoring. Previous attempts are still prese
 
 What first struck me about looking at Jeff's code was that our algorithms were almost identical! Which I thought was cool, even though it took me four tries to get where he was. :) But I was happy with my latest implementation even before I looked at his code. (As an aside, he's also doing much cooler stuff than I am with regard to loading different solvers per day; I knew to be fancy I should be using dynamic class loading, but I just didn't do it. Now I kinda wish I did. And I still can; we'll see how much extra time I can free up.) [Update: I refactored to start doing this as of Day 7.] Anyway, what ended up being the difference was that I misinterpreted part of the puzzle. The spec said that at the beginning of the "program," the state started out enabled. What I was doing was treating each *line* of text as a separate program, rather than just taking the entire input as a single program. So basically I was resetting the enabled flag to `true` every once in a while when I thought it was warranted, but the puzzle didn't. That's the kind of thing I probably would have never come to on my own; I really think I needed to compare to another solution in order to figure it out. Because his code and my code worked so similarly, it was easy for me to squeeze out some easily comparable debug output to see what we were doing differently. I'm not sure I would have ever noticed the difference in our enable state management just by looking at the code. I don't know what that says about me, but probably nothing good.
 
-** End spoilers **
+**End spoilers**
 
 ## Day 4: Ceres Search
 
@@ -84,11 +84,11 @@ This won't be a full report. I've logged answers for Day 7 as far as the puzzle 
 
 I took a look at the puzzle before I went to bed, because I had *some* time I could work on it in the morning, but not a lot of time. So I had some time to mull it over before actually coding, and I thought I could at least get part 1 in before I headed out. It turned out part 2 wasn't totally bizarre relative to what I did for part 1, so I ended up being able to do both parts before the rest of my day got underway. So hooray for that! I'm also liking the new structure under yesterday's refactor, though I noticed something else I should refactor, so that'll go on my TODO list, too.
 
-** Spoilers (mild) for Day 8 **
+**Spoilers (mild) for Day 8**
 
 When I first looked at today's puzzle and saw it was more grid stuff, I figured this would, like Day 6, have to wait until I did Day 4. But having the time to think about it before going to bed, I realized I could basically handle it mathematically without having to actually use a grid structure to do it. (Honestly, probably a lot of the grid problems could be done that way, but it's just so much easier to have a grid object around to maintain state. Or...at least I *think* it is. Maybe I should revisit the previous grid problems with the idea in mind that I may not need a grid!) Anyway, once I warmed up to the idea that I wouldn't need an actual matrix, at least for part 1, I decided to give it a shot, and it turned out to work all right. I was a little worried that part 2 would mean I'd need a grid anyway, and I was fully prepared to delay part 2 until I had a grid setup ready, but it turned out I could do both with just math, so...yay for that. Also...there may be some built-in Java way to handle GCF stuff...I forgot to look.
 
-** End spoilers **
+**End spoilers**
 
 ## Day 9: Disk Fragmenter
 
@@ -96,13 +96,13 @@ I guess I felt unduly contrarian this puzzle, and my first stab at part 1 was un
 
 Whatever the case, I'm also due for another overall refactor, so...that may or may not happen today, but I have to work on other stuff now. So I may or may not refactor today, but it's coming.
 
-** Spoilers (mild) for Day 9 **
+**Spoilers (mild) for Day 9**
 
 Upon first reading of the puzzle, the obvious (and probably better) choice is to use an array to represent the disk blocks, but I got it in my head that it would end up being too big, so I decided to try something more like a linked list, instead. Actually a double-linked list, because I envisioned myself having to traverse in both directions from both ends. I know I could have used a Deque or even a List, probably, and saved myself a lot of implementation pain, but I dunno...I enjoyed the exercise, and for some reason I had it in my head to just not use anything backed by an array. Anyway...I ran into a little trouble implementing that (of course), and I *almost* gave it up and just went to using an array, instead, but I just decided to live with the sunk cost and just hope it was time well spent for part 2. In brief...I think the choice made most appealing by the puzzle presentation was just an array of disk blocks (so one array element for each block). I think the second choice was an array of objects that mirrored how the disk map was set up, so one element for each file or free space with an associated size. I pretty much went with the latter choice, except using a linked list instead of an array.
 
 When part 2 came around, it felt like the right choice, since I had already baked in the concept of files as nodes instead of having to manage them at the block level. Even so, there's probably no reason I couldn't have done this with an array and just used indexes or something to do the traversals. But, whatever. It was fun, and it ended up working, even if it was a pain implementing the element inserts and shit like that that probably would have been easier just making the file/space object and using a List or so. So it goes.
 
-** End spoilers **
+**End spoilers**
 
 ## Day 10: Hoof it
 
