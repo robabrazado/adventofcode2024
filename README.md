@@ -179,3 +179,5 @@ I wasn't even going to start a new puzzle today, but the description for part 1 
 I thought I could dash off part 1 real quick over lunch...but it turned out I misunderstood the assignment. Just as well...what I wrote was very quick and very ugly, and it didn't work, to boot. I'm not even committing it. I'll just be coming back to this one later when I have some time, but I'll have to start over.
 
 [Later] I rewrote part 1, now understanding what was being asked. Seems to work well! Sadly, it doesn't seem like what I wrote is going to help me with part 2, despite me trying to make it more general use than what they were asking! I'll need a new approach to tackle part 2.
+
+[Later still] Yeah...my logic for part 2 is totally different from part 1, but both seem to work well, so I'm taking the W!

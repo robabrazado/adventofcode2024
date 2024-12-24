@@ -16,6 +16,14 @@ public class Day23Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
+		if (partOne) {
+			return this.solve1(puzzleInput);
+		} else {
+			return this.solve2(puzzleInput);
+		}
+	}
+	
+	private String solve1(Stream<String> puzzleInput) {
 		int result = 0;
 		LanGraph lanGraph = new LanGraph(puzzleInput);
 		System.out.println(lanGraph);
@@ -31,6 +39,12 @@ public class Day23Solver extends Solver {
 			}
 		}
 		return String.valueOf(result);
+	}
+	
+	private String solve2(Stream<String> puzzleInput) {
+		LanGraph lanGraph = new LanGraph(puzzleInput);
+		System.out.println(lanGraph);
+		return LanGraph.passwordify(lanGraph.getLargestInterconnectedNetwork());
 	}
 	
 }
