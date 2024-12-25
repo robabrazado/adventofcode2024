@@ -181,3 +181,15 @@ I thought I could dash off part 1 real quick over lunch...but it turned out I mi
 [Later] I rewrote part 1, now understanding what was being asked. Seems to work well! Sadly, it doesn't seem like what I wrote is going to help me with part 2, despite me trying to make it more general use than what they were asking! I'll need a new approach to tackle part 2.
 
 [Later still] Yeah...my logic for part 2 is totally different from part 1, but both seem to work well, so I'm taking the W!
+
+## Day 24: Crossed Wires
+
+I had a pretty good time implementing part 1, due in no small part to thinking I was doing something "clever." Now having done part 1 and seen the ask for part 2, I think it's likely I'll have to throw away everything I did for part 1. I'm not going to try it out now, though; it's late and I have to sleep. I'll think on it, though...I'll try to use this extra mulling time to see if I an approach part 2 with the architecture I set up for part 1...or if I'll just have to start the whole thing over.
+
+**Day 24 part 1 spoilers**
+
+For whatever reason, it seemed to make sense to me to have the signal information work backwards...that it would get "pulled" from the output wires instead of "pushed" by the initial wire values. Since the gates have to "wait" for their signals to come in, it felt like it made sense for me to pull on the dependency chain from the output side. Like...it seemed like it would make it easier to detect errors?
+
+[Later] Now that I've completed part 1 and seen part 2, I think I've really hosed myself. By "easier to detect errors" before, I meant easier to detect if I wasn't wiring the board internals correctly based on what the puzzle input was saying. Now that I've seen part 2, "easier to detect errors" is laughably wrong; I can't detect shit with this implementation, I'm pretty sure. I thought I was so funny not keeping any gate references. Who's laughing now?! Not me.
+
+**End spoilers**
