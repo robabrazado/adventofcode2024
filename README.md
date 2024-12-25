@@ -154,6 +154,10 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 I love an emulator day! I had fun doing part 1. Now seeing part 2...I'm less enthused about an emulator day. I'll try brute force first and see how it goes.
 
+[Later] Mmm...brute force looks to be untenable. I'm doign a commit, though, just to commemorate the attempt. Plus it includes some refactoring of the part 1 code. Not that I'm going to need it; I'll have to approach part 2 way differently, I think.
+
+
+
 ## Day 18: RAM Run
 
 

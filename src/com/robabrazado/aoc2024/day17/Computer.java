@@ -101,35 +101,61 @@ public class Computer {
 	// Initializes computer and runs program as specified by puzzle input
 	// Returns comma-delimited String of program output
 	public static String part1(Stream<String> puzzleInput) {
-		StringBuilder result = new StringBuilder();
 		Computer computer = new Computer();
+		ParsedPuzzle parsed = Computer.parsePuzzleInput(puzzleInput);
+		
+		computer.registerA = parsed.a;
+		computer.registerB = parsed.b;
+		computer.registerC = parsed.c;
+		
+		return Computer.formatOutput(computer.executeProgram(Computer.stringToProgram(parsed.programString)));
+	}
+	
+	// Brute force attempt at part 2
+	public static String part2(Stream<String> puzzleInput) {
+		BigInteger testA = BigInteger.ZERO;
+		ParsedPuzzle parsed = Computer.parsePuzzleInput(puzzleInput);
+		String programString = parsed.programString;
+		Computer computer = new Computer();
+		String output = null;
+		int outputLen = 0; // This is just to keep output reasonable
+		
+		while (!programString.equals(output)) {
+			testA = testA.add(BigInteger.ONE);
+			computer.initialize(testA, parsed.b, parsed.c);
+			List<Integer> numericOutput = computer.executeProgram(Computer.stringToProgram(parsed.programString));
+			output = Computer.formatOutput(numericOutput);
+			if (numericOutput.size() > outputLen) {
+				outputLen = numericOutput.size();
+				System.out.println("Checked " + testA.toString() + ": " + output);
+			}
+		}
+		
+		return testA.toString();
+	}
+	
+	private static ParsedPuzzle parsePuzzleInput(Stream<String> puzzleInput) {
 		Iterator<String> it = puzzleInput.iterator();
 		
-		computer.registerA = Computer.parseRegister(it.next(), "A");
-		computer.registerB = Computer.parseRegister(it.next(), "B");
-		computer.registerC = Computer.parseRegister(it.next(), "C");
+		BigInteger a = Computer.parseRegister(it.next(), "A");
+		BigInteger b = Computer.parseRegister(it.next(), "B");
+		BigInteger c = Computer.parseRegister(it.next(), "C");
 		
 		if (!it.next().isEmpty()) {
 			throw new RuntimeException("Malformed puzzle input; expected blank line");
 		}
 		
 		String programLine = it.next();
+		String programString = null;
 		if (programLine.startsWith(PROGRAM_INPUT_START)) {
-			List<Integer> program = new ArrayList<Integer>();
-			String[] programStrings = programLine.substring(PROGRAM_INPUT_START.length()).split(",");
-			for (String s : programStrings) {
-				program.add(Integer.parseInt(s));
-			}
-			List<Integer> output = computer.executeProgram(program);
-			for (int o : output) {
-				result.append(String.valueOf(o)).append(',');
-			}
-			result.deleteCharAt(result.length() - 1);
-		} else {
+			programString = programLine.substring(PROGRAM_INPUT_START.length());
+		}
+		
+		if (programString == null) {
 			throw new RuntimeException("Malformed program input: " + programLine);
 		}
 		
-		return result.toString();
+		return new ParsedPuzzle(a, b, c, programString);
 	}
 	
 	private static BigInteger parseRegister(String line, String registerCode) {
@@ -146,6 +172,25 @@ public class Computer {
 		}
 	}
 	
+	private static List<Integer> stringToProgram(String programString) {
+		List<Integer> program = new ArrayList<Integer>();
+		String[] programStrings = programString.split(",");
+		for (String s : programStrings) {
+			program.add(Integer.parseInt(s));
+		}
+		return program;
+	}
+	
+	private static String formatOutput(List<Integer> output) {
+		StringBuilder result = new StringBuilder();
+		for (int o : output) {
+			result.append(String.valueOf(o)).append(',');
+		}
+		result.deleteCharAt(result.length() - 1);
+		
+		return result.toString();
+	}
+	
 	public enum Operator {
 		ADV		(),
 		BXL		(),
@@ -156,4 +201,6 @@ public class Computer {
 		BDV		(),
 		CDV		();
 	}
+	
+	private record ParsedPuzzle(BigInteger a, BigInteger b, BigInteger c, String programString) {}
 }
