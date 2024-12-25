@@ -152,7 +152,7 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 ## Day 17: Chronospatial Computer
 
-
+I love an emulator day! I had fun doing part 1. Now seeing part 2...I'm less enthused about an emulator day. I'll try brute force first and see how it goes.
 
 ## Day 18: RAM Run
 
