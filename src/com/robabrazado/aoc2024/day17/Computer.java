@@ -1,5 +1,7 @@
 package com.robabrazado.aoc2024.day17;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -111,27 +113,98 @@ public class Computer {
 		return Computer.formatOutput(computer.executeProgram(Computer.stringToProgram(parsed.programString)));
 	}
 	
-	// Brute force attempt at part 2
+	/*
+	 * This might be highly specialized for my puzzle input; there's no way it's a general case solution.
+	 * I didn't have the brain power to actually write a reverse interpreter or whatever I'd need to run
+	 * the program backwards to get the right inputs for a given answer, but in examining the program for
+	 * myself, I got an idea of how it works and figured I could at least narrow the search space. Broadly,
+	 * there's one output per loop, so that let me figure out how many loops to get the target output. The
+	 * looping stops when A holds 0, and at the end of each loop (before jumping), the value of A was
+	 * effectively bit-shifted 3 to the right, so it figures the desired input would be no more than 3 bits
+	 * per output. In addition, the output was determined primarily by the lowest 3 bits of the A
+	 * register (and a varying number of high bits), so I figure 3 bits of search space per output,
+	 * which shouldn't take NEARLY as long as the old brute force did. Basically, I go through the output
+	 * "backward" to assemble the higher bits of the A input first, because once the high bits are set,
+	 * they'll dictate the conditions for searching the low bit space, and so on until all desired
+	 * outputs are accounted for.
+	 */
 	public static String part2(Stream<String> puzzleInput) {
-		BigInteger testA = BigInteger.ZERO;
-		ParsedPuzzle parsed = Computer.parsePuzzleInput(puzzleInput);
-		String programString = parsed.programString;
-		Computer computer = new Computer();
-		String output = null;
-		int outputLen = 0; // This is just to keep output reasonable
+//		System.out.println(Computer.decode(puzzleInput));
 		
-		while (!programString.equals(output)) {
-			testA = testA.add(BigInteger.ONE);
-			computer.initialize(testA, parsed.b, parsed.c);
-			List<Integer> numericOutput = computer.executeProgram(Computer.stringToProgram(parsed.programString));
-			output = Computer.formatOutput(numericOutput);
-			if (numericOutput.size() > outputLen) {
-				outputLen = numericOutput.size();
-				System.out.println("Checked " + testA.toString() + ": " + output);
+		Computer computer = new Computer();
+		ParsedPuzzle parsed = Computer.parsePuzzleInput(puzzleInput);
+		String desiredOutputString = parsed.programString;
+		List<Integer> desiredOutput = new ArrayList<Integer>();
+		String[] desiredOutputStrings = desiredOutputString.split(",");
+		for (String s : desiredOutputStrings) {
+			desiredOutput.add(Integer.parseInt(s));
+		}
+		
+		List<BigInteger> baseCandidates = new ArrayList<BigInteger>();
+		baseCandidates.add(BigInteger.ZERO);
+		
+		// Walk through the output in reverse order
+		int desiredOutputLen = desiredOutput.size();
+		for (int outputIdx = desiredOutputLen - 1; outputIdx >= 0; outputIdx--) {
+			List<Integer> checkAgainst = desiredOutput.subList(outputIdx, desiredOutputLen); // The last N outputs (desired output for this "digit" of input)
+			List<BigInteger> newBaseCandidates = new ArrayList<BigInteger>();
+			while (baseCandidates.size() > 0) {
+				BigInteger base = baseCandidates.remove(0);
+				for (int i = 0; i < 8; i++) {
+					BigInteger testInput = base.multiply(BIG8).add(BigInteger.valueOf(i)); // Shift left and add test digit
+					System.out.print("Testing input " + testInput + "...");
+					computer.registerA = testInput;
+					computer.registerB = parsed.b;
+					computer.registerC = parsed.c;
+					List<Integer> thisResult = computer.executeProgram(desiredOutput);
+					for (int j : thisResult) {
+						System.out.print(j);
+						System.out.print(',');
+					}
+					System.out.println();
+					if (thisResult.equals(checkAgainst)) {
+						newBaseCandidates.add(testInput);
+					}
+				}
+			}
+			
+			if (newBaseCandidates.size() > 0) {
+				baseCandidates = newBaseCandidates;
+			} else {
+				throw new RuntimeException("Narrow search failed");
 			}
 		}
 		
-		return testA.toString();
+		// In case of multiple answers, we want the lowest one
+		baseCandidates.sort(null);
+		
+		return baseCandidates.get(0).toString();
+	}
+	
+	// This is just diagnostic so I can get a better look at what's happening in there
+	public static String decode(Stream<String> puzzleInput) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw, true);
+		ParsedPuzzle parsed = Computer.parsePuzzleInput(puzzleInput);
+		
+		pw.println("A: " + parsed.a.toString());
+		pw.println("B: " + parsed.b.toString());
+		pw.println("C: " + parsed.c.toString());
+		pw.println();
+		
+		pw.println(parsed.programString);
+		pw.println();
+		
+		String[] programStrings = parsed.programString.split(",");
+		int len = programStrings.length;
+		Operator[] ops = Operator.values();
+		for (int i = 0; i < len; i++) {
+			pw.print(ops[Integer.parseInt(programStrings[i++])].name());
+			pw.print(" ");
+			pw.println(programStrings[i]);
+		}
+		
+		return sw.toString();
 	}
 	
 	private static ParsedPuzzle parsePuzzleInput(Stream<String> puzzleInput) {

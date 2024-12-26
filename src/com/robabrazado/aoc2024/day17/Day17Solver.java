@@ -14,7 +14,11 @@ public class Day17Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
-		return Computer.part1(puzzleInput);
+		if (partOne) {
+			return Computer.part1(puzzleInput);
+		} else {
+			return Computer.part2(puzzleInput);
+		}
 	}
 	
 }

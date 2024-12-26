@@ -152,11 +152,11 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 ## Day 17: Chronospatial Computer
 
-I love an emulator day! I had fun doing part 1. Now seeing part 2...I'm less enthused about an emulator day. I'll try brute force first and see how it goes.
+[On day 25] I love an emulator day! I had fun doing part 1. Now seeing part 2...I'm less enthused about an emulator day. I'll try brute force first and see how it goes.
 
-[Later] Mmm...brute force looks to be untenable. I'm doign a commit, though, just to commemorate the attempt. Plus it includes some refactoring of the part 1 code. Not that I'm going to need it; I'll have to approach part 2 way differently, I think.
+[Later] Mmm...brute force looks to be untenable. I'm doing a commit, though, just to commemorate the attempt. Plus it includes some refactoring of the part 1 code. Not that I'm going to need it; I'll have to approach part 2 way differently, I think.
 
-
+[On day 26] Ugh...I spent a LOT of time trying to figure out how I could tackle part 2, and in the end, I basically just cheesed it. The spoilery stuff on my thought process is all in the code comments, so I'll spare it in the README, except to say that I _know_ for sure it's not a general solution, but I _think_ it would work for other input? It basically depends on how similarly other people's puzzle input programs work and if they operate similarly to mine. But in the end, it's just a smarter version of brute force. Still, I basically had to figure out how my input program worked before I could even start to write the solution. So...I don't love it, not by a long way, but it got the job done.
 
 ## Day 18: RAM Run
 
