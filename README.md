@@ -162,6 +162,16 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 [On day 27] Part 1 went relatively well; I tried out a small change to a familiar technique basically just for the exercise of it, and it seems fine. Going into part 2, I'm _pretty_ sure I can get away with minimal adjustments to part 1 to get a solution. We shall see!
 
+Success! Though, granted, it took longer to run than I expected, so...there may be a better way. Also, I am aware that my solution is not completely 100% rigorous...more in spoilers.
+
+**Spoilers for Day 18**
+
+The familiar technique I referenced for part 1 was Djikstra's Algorithm, which I have implemented many times for AoC, but the new thing I tried out was using it with a priority queue instead of just a regular set for the unseen nodes. Took a bit of extra code, but they tell me it performs better, so... At this scale, I can't really tell the difference, but I'm glad to have that in my toolbox.
+
+For part 2, it's not 100% rigorous in the sense that...in the rare case where the shortest path to the exit takes `Integer.MAX_VALUE` steps, I won't be able to tell that apart from not being able to reach the end. So...there's that, but I'll live with it.
+
+**End spoilers**
+
 ## Day 19: Linen Layout
 
 

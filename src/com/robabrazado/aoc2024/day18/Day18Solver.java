@@ -15,9 +15,15 @@ public class Day18Solver extends Solver {
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		MemorySpace space = MemorySpace.getMemorySpaceFromPuzzle(puzzleInput, isTest);
-		space.advanceTime(isTest ? 12 : 1024);
+		int advanceTime = isTest ? 12 : 1024;
+		space.advanceTime(advanceTime);
 		System.out.println(space);
-		return String.valueOf(space.minStepsToExit());
+		
+		if (partOne) {
+			return String.valueOf(space.minStepsToExit());
+		} else {
+			return space.nextBlockingByteCoords().toString();
+		}
 	}
 	
 }

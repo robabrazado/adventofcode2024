@@ -56,19 +56,24 @@ public class MemorySpace {
 		return;
 	}
 	
-	public void advanceTime(int nanos) {
+	// Returns coordinates of the most recent byte to fall (for part 2)
+	// Returns null if no bytes fell
+	public Coords advanceTime(int nanos) {
+		Coords result = null;
 		if (nanos > 0) {
 			List<Coords> bytesToFall = new ArrayList<Coords>(this.fallingBytes.subList(this.currentTime, this.currentTime + nanos));
 			for (int i = 1; i <= nanos; i++) {
 				if (bytesToFall.size() > 0) {
-					this.corrupted.add(bytesToFall.remove(0));
+					result = bytesToFall.remove(0);
+					this.corrupted.add(result);
 				}
 			}
 			this.currentTime += nanos;
 		} else if (nanos < 0) {
 			throw new IllegalArgumentException("Cannot go back in time");
 		} // else advance 0 does nothing
-		return;
+		
+		return result;
 	}
 	
 	public void resetTime() {
@@ -122,6 +127,20 @@ public class MemorySpace {
 		}
 		
 		return distanceMap.get(this.exit).distance;
+	}
+	
+	// I guess returns null if path is never blocked? For safety, I exit if no more bytes are set to fall
+	public Coords nextBlockingByteCoords() {
+		Coords result = null;
+		
+		while (result == null && this.currentTime < this.fallingBytes.size()) {
+			Coords tmp = this.advanceTime(1);
+			if (this.minStepsToExit() == Integer.MAX_VALUE) { // Fart noise
+				result = tmp;
+			}
+		}
+		
+		return result;
 	}
 	
 	public boolean isInBounds(Coords c) {
