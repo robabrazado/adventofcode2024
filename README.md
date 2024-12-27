@@ -160,7 +160,7 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 ## Day 18: RAM Run
 
-
+[On day 27] Part 1 went relatively well; I tried out a small change to a familiar technique basically just for the exercise of it, and it seems fine. Going into part 2, I'm _pretty_ sure I can get away with minimal adjustments to part 1 to get a solution. We shall see!
 
 ## Day 19: Linen Layout
 
@@ -197,3 +197,6 @@ For whatever reason, it seemed to make sense to me to have the signal informatio
 [Later] Now that I've completed part 1 and seen part 2, I think I've really hosed myself. By "easier to detect errors" before, I meant easier to detect if I wasn't wiring the board internals correctly based on what the puzzle input was saying. Now that I've seen part 2, "easier to detect errors" is laughably wrong; I can't detect shit with this implementation, I'm pretty sure. I thought I was so funny not keeping any gate references. Who's laughing now?! Not me.
 
 **End spoilers**
+
+## Day 25: Code Chronicle
+
