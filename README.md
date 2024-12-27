@@ -174,6 +174,8 @@ For part 2, it's not 100% rigorous in the sense that...in the rare case where th
 
 ## Day 19: Linen Layout
 
+[On day 27] I went into part 1 semi-confident that I had an idea that would work but that might be time-consuming. The first run bore that suspicion out, but after adding a bit of caching, it went much better. Going into part 2, I'm confident I can use basically the same algorithm, **but** in order to keep the code tight, I'll have to rewrite it a bit to support part 2, and then part 1 will just take advantage of part 2 and read the results differently. Sadly, I can't jump straight into it, and I'll have to come back to part 2 later.
+
 
 
 ## Day 20: Race Condition
