@@ -194,6 +194,8 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 [Later] I have an (ostensibly working) part 2 for which I did minimal tweaking, but it's taking a good, long while to execute. I may need to look into some optimization.
 
+[A bit later] Ehhhh...it did take a noticeably long time, but it finished before I even started to look at optimizations, so I'm just going to leave it. This part 2 runs slow!
+
 ## Day 21: Keypad Conundrum
 
 [On day 22] I started work on this on day 21 but bungled it somehow. As with Day 16, by the time I end up getting back to this, I might start over.
