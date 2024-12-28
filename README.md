@@ -176,7 +176,17 @@ For part 2, it's not 100% rigorous in the sense that...in the rare case where th
 
 [On day 27] I went into part 1 semi-confident that I had an idea that would work but that might be time-consuming. The first run bore that suspicion out, but after adding a bit of caching, it went much better. Going into part 2, I'm confident I can use basically the same algorithm, **but** in order to keep the code tight, I'll have to rewrite it a bit to support part 2, and then part 1 will just take advantage of part 2 and read the results differently. Sadly, I can't jump straight into it, and I'll have to come back to part 2 later.
 
+[Later] I have somehow completely bungled part 2 when trying to adapt it to be usable by part 1. I'm rolling back to the part 1 commit, and I'm just going to start part 2 over from scratch.
 
+WELP when I rolled things back I committed some kind of git sin and lost a bunch of stuff that I'd been sitting on for other puzzles but hadn't committed yet. It's fine, there's no big loss. None of that stuff was working anyway. :) But also now I gotta stop work again, so I'll come back to part 2 later AGAIN.
+
+[On day 28] Welp. Kind of frustrated with myself on this one. I took like the whole rest of yesterday coming up with some big complicated algorithm to deal with part 2, and then I implemented it this morning, and it super didn't work, so I started over again. This would be my third attempt at part 2. The third attempt was _very_ simple and also may even run faster than my original part 1, so it makes me think once again I'd be better off junking part 1 and just having it use the part 2 code, but I can't be bothered at this point. Onward!
+
+**Spoilers (mild) for Day 19 part 2 and some extra pondering**
+
+Once I implemented my third attempt at part 2, the only stumbling block was that it overflowed int, so redid the thing with BigInteger instead. I'm once again wondering if it's worth just using BigInteger all the time, which would take more time to code but which would mean I'd never have to worry about overflow (especially if it happens in a way that's hard to spot...that's my real nightmare). Or is it worth taking the half-step of long? I wish I had a better way to estimate what the outputs would be like beforehand. Which...I mean, I could maybe code something for each puzzle to try and see, but at that point, it's probably faster to just use BigInteger from the start. Eh, minor problems, but still...it's on my mind.
+
+**End spoilers**
 
 ## Day 20: Race Condition
 

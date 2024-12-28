@@ -17,7 +17,11 @@ public class Day19Solver extends Solver {
 		TowelArranger arranger = TowelArranger.arrangerFromPuzzle(puzzleInput);
 		System.out.println(arranger);
 		
-		return String.valueOf(arranger.possibleDesignCount());
+		if (partOne) {
+			return String.valueOf(arranger.possibleDesignCount());
+		} else {
+			return String.valueOf(arranger.possibleArrangementsCount());
+		}
 	}
 	
 }

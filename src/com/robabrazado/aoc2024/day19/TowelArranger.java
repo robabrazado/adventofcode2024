@@ -2,6 +2,7 @@ package com.robabrazado.aoc2024.day19;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -88,6 +89,56 @@ public class TowelArranger {
 		return possible;
 	}
 	
+
+	public BigInteger possibleArrangementsCount() {
+		BigInteger counter = BigInteger.ZERO;
+		Map<String, BigInteger> knownDesignCounts = new HashMap<String, BigInteger>();
+		
+		for (String s : this.desiredDesigns) {
+			System.out.print("Checking " + s + "...");
+			BigInteger num = this.possibleArrangementsCount(s, knownDesignCounts);
+			System.out.println("found " + String.valueOf(num));
+			counter = counter.add(num);
+		}
+		
+		return counter;
+	}
+	
+	/*
+	 *  Third try at part 2. Second try was starting from scratch instead of modifying part 1,
+	 *  but the new algorithm was flawed. Back to the drawing board.
+	 *  
+	 *  This time I'm going to try matching from the left of the design and then recursively
+	 *  rightward. It doesn't feel like caching is going to help me much on this one, but I'll
+	 *  keep it in there anyway. Call it an artifact from previous attempts.
+	 *  
+	 *  [Later] Well, it passed test data, which is a first. But it overflowed int, so I'll
+	 *  rewrite everything with BigInteger. Can the answer really be that high?
+	 *  
+	 *  [A little later] The answer really was that high. *sigh*
+	 */
+	private BigInteger possibleArrangementsCount(String design, Map<String, BigInteger> knownDesignCounts) {
+		BigInteger result = BigInteger.ZERO;
+		int designLen = design.length();
+		
+		if (designLen > 0) {
+			for (String towel : this.availableTowels) {
+				if (design.startsWith(towel)) {
+					String rightPart = design.substring(towel.length());
+					if (!knownDesignCounts.containsKey(rightPart)) {
+						knownDesignCounts.put(rightPart, this.possibleArrangementsCount(rightPart, knownDesignCounts));
+					}
+					result = result.add(knownDesignCounts.get(rightPart));
+				}
+			}
+		} else {
+			// Empty design is always one arrangement (no towels)
+			result = BigInteger.ONE;
+		}
+		
+		return result;
+	}
+	
 	@Override
 	public String toString() {
 		StringWriter sw = new StringWriter();
@@ -123,4 +174,5 @@ public class TowelArranger {
 		
 		return arranger;
 	}
+	
 }
