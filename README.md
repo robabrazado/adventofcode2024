@@ -226,3 +226,4 @@ For whatever reason, it seemed to make sense to me to have the signal informatio
 
 ## Day 25: Code Chronicle
 
+[On day 28] I really phoned it in on this one. :) The solution is not rigorous...it makes lots of assumptions about the input and probably some other stuff, so it's not as generally applicable as I would normally like, but here we are. At the time of this writing, I'm 7 stars away from completion.
