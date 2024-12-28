@@ -184,13 +184,13 @@ WELP when I rolled things back I committed some kind of git sin and lost a bunch
 
 **Spoilers (mild) for Day 19 part 2 and some extra pondering**
 
-Once I implemented my third attempt at part 2, the only stumbling block was that it overflowed int, so redid the thing with BigInteger instead. I'm once again wondering if it's worth just using BigInteger all the time, which would take more time to code but which would mean I'd never have to worry about overflow (especially if it happens in a way that's hard to spot...that's my real nightmare). Or is it worth taking the half-step of long? I wish I had a better way to estimate what the outputs would be like beforehand. Which...I mean, I could maybe code something for each puzzle to try and see, but at that point, it's probably faster to just use BigInteger from the start. Eh, minor problems, but still...it's on my mind.
+Once I implemented my third attempt at part 2, the only stumbling block was that it overflowed int, so I redid the thing with BigInteger instead. I'm once again wondering if it's worth just using BigInteger all the time, which would take more time to code but which would mean I'd never have to worry about overflow (especially if it happens in a way that's hard to spot...that's my real nightmare). Or is it worth taking the half-step of long? I wish I had a better way to estimate what the outputs would be like beforehand. Which...I mean, I could maybe code something for each puzzle to try and see, but at that point, it's probably faster to just use BigInteger from the start. Eh, minor problems, but still...it's on my mind.
 
 **End spoilers**
 
 ## Day 20: Race Condition
 
-
+[On day 28] I felt pretty good about my initial design going into part 1, and I vaguely guessed what was going to happen in part 2. Even so, I proceeded with part 1 not trying to anticipate part 2, because that always gets me into trouble. The hope, though, is that part 2 won't take *too* much tweaking.
 
 ## Day 21: Keypad Conundrum
 
