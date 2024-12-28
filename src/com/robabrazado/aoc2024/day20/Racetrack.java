@@ -3,11 +3,14 @@ package com.robabrazado.aoc2024.day20;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.grid.Coords;
@@ -15,7 +18,6 @@ import com.robabrazado.aoc2024.grid.Dir;
 
 public class Racetrack {
 	private static final Dir[] CARDINALS = Dir.cardinals();
-	private static final Dir[] DIAGONALS = Dir.diagonals();
 	private static final char[] DISTANCE_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 		
 	private final Map<Coords, Cell> trackMap = new HashMap<Coords, Cell>();
@@ -91,20 +93,26 @@ public class Racetrack {
 	}
 	
 	// Only lists cheats that save time
-	public List<Cheat> getWorthwhileCheats() {
-		List<Cheat> result = new ArrayList<Cheat>();
+	public List<CheatWithTimeSaved> getWorthwhileCheats(int cheatLength) {
+		List<CheatWithTimeSaved> result = new ArrayList<CheatWithTimeSaved>();
 		List<Cell> trackCellsRemaining = new ArrayList<Cell>(this.trackMap.values());
+		Set<Cheat> seenCheats = new HashSet<Cheat>();
 		
 		while (!trackCellsRemaining.isEmpty()) {
 			Cell me = trackCellsRemaining.remove(0);
 			int myEndDistance = me.getEndDistance();
-			List<Cell> cheatNeighbors = this.getCheatNeighbors(me);
-//System.out.println(me.getCoords() + " has " + String.valueOf(cheatNeighbors.size()) + " cheat neighbors");
+			List<Cell> cheatNeighbors = this.getCheatNeighbors(me, cheatLength);
 			for (Cell cheatNeighbor : cheatNeighbors) {
-				// If cheating to this neighbor would save time, log it
-				int neighborEndDistance = cheatNeighbor.getEndDistance();
-				if (neighborEndDistance < myEndDistance - 2) {
-					result.add(new Cheat(me.getCoords(), cheatNeighbor.getCoords(), myEndDistance - 2 - neighborEndDistance));
+				Cheat thisCheat = new Cheat(me.getCoords(), cheatNeighbor.getCoords());
+				if (!seenCheats.contains(thisCheat)) {
+					// If cheating to this neighbor would save time, log it
+					int neighborEndDistance = cheatNeighbor.getEndDistance();
+					int neighborCheatDistance = me.taxicabDistanceTo(cheatNeighbor);
+					int timeSaved = myEndDistance - neighborEndDistance - neighborCheatDistance;
+					if (timeSaved > 0) {
+						result.add(new CheatWithTimeSaved(thisCheat, timeSaved));
+					}
+					seenCheats.add(thisCheat);
 				}
 			}
 		}
@@ -200,20 +208,26 @@ public class Racetrack {
 		return results;
 	}
 	
-	// Returns track cells (exactly) 2 steps away from specified cell, even through a wall
-	// Does NOT include regular neighbors (reachable in 1 step without cheating)
-	private List<Cell> getCheatNeighbors(Cell c) {
-		List<Cell> results = new ArrayList<Cell>();
-		Coords me = c.getCoords();
-		for (Dir d : CARDINALS) {
-			Coords checking = me.applyOffset(d, 2);
-			this.addIfTrackCell(results, checking);
+	// Had to rewrite this for part 2. Returns all track cells within the specified taxicab radius.
+	// Still ignores (but does not return) walls
+	private List<Cell> getCheatNeighbors(Cell me, int cheatLength) {
+		List<Cell> result = new ArrayList<Cell>();
+		
+		if (cheatLength > 1) {
+			Coords myCoords = me.getCoords();
+			int myCol = myCoords.getCol();
+			int myRow = myCoords.getRow();
+			
+			// Treating self as origin and working with offsets
+			for (int colOffset = -cheatLength; colOffset <= cheatLength; colOffset++) {
+				int maxRowOffset = cheatLength - Math.abs(colOffset);
+				for (int rowOffset = -maxRowOffset; rowOffset <= maxRowOffset; rowOffset++) {
+					this.addIfTrackCell(result, new Coords(myCol + colOffset, myRow + rowOffset));
+				}
+			}
 		}
-		for (Dir d : DIAGONALS) {
-			Coords checking = me.applyOffset(d);
-			this.addIfTrackCell(results, checking);
-		}
-		return results;
+		
+		return result;
 	}
 	
 	private boolean isInBounds(Coords c) {
@@ -225,12 +239,18 @@ public class Racetrack {
 	}
 	
 	// Destructive to list!
-	private void addIfTrackCell(List<Cell> list, Coords candidate) {
+	private void addIfTrackCell(Collection<Cell> collection, Coords candidate) {
 		if (this.isInBounds(candidate) && this.trackMap.containsKey(candidate)) {
-			list.add(this.trackMap.get(candidate));
+			collection.add(this.trackMap.get(candidate));
 		}
 		return;
 	}
 	
-	public record Cheat(Coords start, Coords end, int timeSaved) {}
+	public record Cheat(Coords start, Coords end) {}
+	
+	public record CheatWithTimeSaved(Coords start, Coords end, int timeSaved) {
+		public CheatWithTimeSaved(Cheat cheat, int timeSaved) {
+			this(cheat.start, cheat.end, timeSaved);
+		}
+	}
 }

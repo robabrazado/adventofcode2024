@@ -58,6 +58,10 @@ public class Cell {
 			throw new RuntimeException("Unsupported distance type: " + type.name());
 		}
 	}
+
+	public int taxicabDistanceTo(Cell other) {
+		return this.coords.taxicabDistanceTo(other.coords);
+	}
 	
 	public enum DistanceType {
 		START		(),

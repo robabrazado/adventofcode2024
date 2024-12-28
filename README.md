@@ -192,6 +192,8 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 [On day 28] I felt pretty good about my initial design going into part 1, and I vaguely guessed what was going to happen in part 2. Even so, I proceeded with part 1 not trying to anticipate part 2, because that always gets me into trouble. The hope, though, is that part 2 won't take *too* much tweaking.
 
+[Later] I have an (ostensibly working) part 2 for which I did minimal tweaking, but it's taking a good, long while to execute. I may need to look into some optimization.
+
 ## Day 21: Keypad Conundrum
 
 [On day 22] I started work on this on day 21 but bungled it somehow. As with Day 16, by the time I end up getting back to this, I might start over.

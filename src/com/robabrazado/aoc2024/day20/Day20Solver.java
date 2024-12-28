@@ -24,10 +24,11 @@ public class Day20Solver extends Solver {
 //		System.out.println(racetrack.toString(Cell.DistanceType.START));
 //		System.out.println(racetrack.toString(Cell.DistanceType.END));
 		
-		List<Racetrack.Cheat> cheats = racetrack.getWorthwhileCheats();
+		int cheatLength = partOne ? 2 : 20;
+		List<Racetrack.CheatWithTimeSaved> cheats = racetrack.getWorthwhileCheats(cheatLength);
 		// For info output
 		Map<Integer, Integer> timeCounts = new HashMap<Integer, Integer>();
-		for (Racetrack.Cheat cheat : cheats) {
+		for (Racetrack.CheatWithTimeSaved cheat : cheats) {
 			int timeSaved = cheat.timeSaved();
 			if (!timeCounts.containsKey(timeSaved)) {
 				timeCounts.put(timeSaved, 0);
@@ -42,7 +43,7 @@ public class Day20Solver extends Solver {
 		// End info output
 		
 		int result = 0;
-		for (Racetrack.Cheat cheat : cheats) {
+		for (Racetrack.CheatWithTimeSaved cheat : cheats) {
 			if (cheat.timeSaved() >= 100) {
 				result++;
 			}

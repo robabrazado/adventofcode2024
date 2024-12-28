@@ -67,6 +67,11 @@ public class Coords {
 		
 		return slope;
 	}
+
+	public int taxicabDistanceTo(Coords other) {
+		Coords offset = this.getOffsetFrom(other);
+		return Math.abs(offset.col) + Math.abs(offset.row); 
+	}
 	
 	@Override
 	public String toString() {
