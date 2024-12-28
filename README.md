@@ -116,6 +116,10 @@ When part 2 came around, it felt like the right choice, since I had already bake
 
 [On day 22] Okay, so...I'm pretty sure I got it to the point where it wouldn't run out of memory (on day 18) but would still take a hell of a lot of time to run. I'll admit, I just let it chug away for like two or three days, figuring I'd just live with the shame, but eventually I had to throw in the towel and just admit that I need a better algorithm. Trying out some other puzzles, and I'll come back to this one. At the time of this writing, I'm committing part 1 of day 12, but I'm still way, way behind.
 
+[On day 28] Awright, I'm coming back to this one to try and work it out. Because it's been quite a while since I worked on this, and also due to the Great Git Mishap of Day 27, I'm going to just start this bad boy over again. That'll mean a whole new solution for part 1, so...first run will be in the commit history for the morbidly curious.
+
+[Later] Well THAT wasn't such a chore, now was it?! I don't know why this caused me so much trouble before, except that I know I had a bunch of trouble figuring out the caching. Seems to work this time, though! Don't be fooled...I spent plenty of time staring at this thing without the caching and wondering if I was just botching the algorithm. Turns out I just needed to memoize.
+
 ## The Day 12 Refactor
 Starting on day 10, I had decided to take a few days break from Advent of Code, because I had fallen so far behind in my other work. :) By day 12, I'm definitely making progress catching up (on my other work), and I had some extra time in the evening, so I just took care of the refactor I'd been meaning to do. The Day 7 Refactor took care of the dynamic class loading and the new way of consuming puzzle input that I wanted, but it originally enforced separate part 1 and part 2 solving methods on every puzzle, which wasn't always appropriate, plus it included a vestigial "test data" parameter being passed around that was unneeded. So this refactor corrects those issues.
 

@@ -16,7 +16,10 @@ public class Day11Solver extends Solver {
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		StoneBlinker blinker = new StoneBlinker(puzzleInput);
 		System.out.println(blinker);
-		return String.valueOf(blinker.countAfterBlink(25));
+		System.out.println();
+		
+		int blinkCount = partOne ? 25 : 75;
+		return String.valueOf(blinker.stoneCountAfterBlinks(blinkCount));
 	}
 	
 }
