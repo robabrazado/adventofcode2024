@@ -16,11 +16,8 @@ public class Day16Solver extends Solver {
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		Maze maze = new Maze(puzzleInput);
 		System.out.println(maze);
-		Integer score = maze.lowestScoreToEnd();
-		if (score == null) {
-			throw new RuntimeException("Couldn't find any path to the end; something has gone terribly awry");
-		}
-		return score.toString();
+		
+		return String.valueOf(maze.bestPathScore());
 	}
 	
 }

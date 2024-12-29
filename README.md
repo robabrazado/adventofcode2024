@@ -154,6 +154,10 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 [On day 22] I'm not even checking any code in for this yet. I did start working on it on day 16 but quickly ran into trouble, and eventually I just had to abandon ship and go to bed. At the time of this writing, it's been long enough that I don't even remember what I was stuck on, so when I do get back to this one, I might end up starting from scratch. We'll see.
 
+[On day 28] Yeah...I'm coming back to this now, and I'm just going to start over.
+
+[Later] I finished part 1 with what I think is some pretty straightforward pathfinding that I think I may have made unnecessarily complicated with some suboptimal object design, but so it goes. Looking at part 2...I'm thinking initially it only needs minor modification to work, so...we'll see how that goes. Even so...I'm strongly considering making part 2 code completely separate from part 1 just so part 1's performance (which is already shaky) won't necessarily get even worse by depending on part 2 functionality.
+
 ## Day 17: Chronospatial Computer
 
 [On day 25] I love an emulator day! I had fun doing part 1. Now seeing part 2...I'm less enthused about an emulator day. I'll try brute force first and see how it goes.
