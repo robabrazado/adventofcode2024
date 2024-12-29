@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.grid.Coords;
@@ -84,54 +86,49 @@ public class Maze {
 			throw new RuntimeException("Maze map has no end coordinates");
 		}
 		this.end = tempEnd;
+		
 		return;
 	}
 	
-	// Plain ol' Dijkstra's
 	public int bestPathScore() {
-		Map<PathNode, PathNodeWithDistance> nodeMap = new HashMap<PathNode, PathNodeWithDistance>();
-		PriorityQueue<PathNodeWithDistance> unseen = new PriorityQueue<PathNodeWithDistance>(
-				Comparator.comparing(PathNodeWithDistance::distance, Comparator.nullsLast(Comparator.naturalOrder())));
-		for (Coords c : this.pathCoords) {
-			for (Dir d : CARDINALS) {
-				PathNode node = new PathNode(c, d);
-				PathNodeWithDistance pnwd = new PathNodeWithDistance(node);
-				if (c.equals(this.start) && d.equals(Dir.E)) {
-					pnwd.distance = 0;
-				}
-				unseen.add(pnwd);
-				nodeMap.put(node, pnwd);
-			}
+		Map<PathNodeKey, PathNode> pathMap = this.pathfind();
+		return this.bestEndNodes(pathMap).get(0).shortestDistanceToStart;
+	}
+
+	public int bestSeatCount() {
+		return this.bestSeats().size();
+	}
+	
+	private Set<Coords> bestSeats() {
+		Set<Coords> result = new HashSet<Coords>();
+		Map<PathNodeKey, PathNode> pathMap = this.pathfind();
+		List<PathNode> nodesToCheck = this.bestEndNodes(pathMap);
+
+		// I don't actually need to walk the paths, like, correctly; I just need to know what positions they cover
+		while (!nodesToCheck.isEmpty()) {
+			PathNode node = nodesToCheck.remove(0);
+			nodesToCheck.addAll(node.previousHops.stream().map(key -> pathMap.get(key)).collect(Collectors.toList()));
+			result.add(node.key.position);
 		}
-		
-		while (!unseen.isEmpty() &&
-				!unseen.peek().node.position.equals(this.end) &&
-				unseen.peek().distance != null) {
-			PathNodeWithDistance me = unseen.poll();
-			List<PathNodeWithDistance> neighborEdges = this.getAccessibleNeighbors(me.node);
-			for (PathNodeWithDistance neighborEdge : neighborEdges) {
-				PathNodeWithDistance neighbor = nodeMap.get(neighborEdge.node);
-				int newDistance = me.distance + neighborEdge.distance;
-				if (neighbor.distance == null || newDistance < neighbor.distance) {
-					unseen.remove(neighbor);
-					neighbor.distance = newDistance;
-					unseen.add(neighbor);
-				}
-			}
-		}
-		
-		if (!unseen.peek().node.position.equals(this.end)) {
-			throw new RuntimeException("Pathfinding couldn't find the end?!");
-		}
-		
-		return unseen.peek().distance;
+		return result;
 	}
 	
 	@Override
 	public String toString() {
+		return this.toString((Set<Coords>) null);
+	}
+	
+	public String toStringWithBestSeats() {
+		return this.toString(this.bestSeats());
+	}
+	
+	private String toString(Set<Coords> highlights) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
 		
+		if (highlights == null) {
+			highlights = new HashSet<Coords>();
+		}
 		for (int row = 0; row < this.width; row++) {
 			for (int col = 0; col < this.height; col++) {
 				Coords coords = new Coords(col, row);
@@ -140,6 +137,8 @@ public class Maze {
 						pw.print('S');
 					} else if (this.end.equals(coords)) {
 						pw.print('E');
+					} else if (highlights.contains(coords)) {
+						pw.print('O');
 					} else {
 						pw.print('.');
 					}
@@ -153,8 +152,68 @@ public class Maze {
 		return sw.toString();
 	}
 	
-	private List<PathNodeWithDistance> getAccessibleNeighbors(PathNode node) {
-		List<PathNodeWithDistance> result = new ArrayList<PathNodeWithDistance>();
+	// Good ol' Dijkstra's
+	private Map<PathNodeKey, PathNode> pathfind() {
+		Map<PathNodeKey, PathNode> result = new HashMap<PathNodeKey, PathNode>();
+		for (Coords c : this.pathCoords) {
+			for (Dir d : CARDINALS) {
+				PathNodeKey key = new PathNodeKey(c, d);
+				boolean isStartNode = c.equals(this.start) && d.equals(Dir.E);
+				
+				if (isStartNode || this.isNodeAccessible(key)) {
+					PathNode node = new PathNode(key);
+					if (isStartNode) {
+						node.shortestDistanceToStart = 0;
+					}
+					result.put(key, node);
+				}
+			}
+		}
+		
+		PriorityQueue<PathNode> unseen = new PriorityQueue<PathNode>(PathNode.getMinDistanceComparator());
+		unseen.addAll(result.values());
+		
+		while (!unseen.isEmpty() &&
+				unseen.peek().shortestDistanceToStart != null) {
+			PathNode myNode = unseen.poll();
+			List<PathEdge> neighborEdges = this.getAdjacentEdges(myNode.key);
+			for (PathEdge neighborEdge : neighborEdges) {
+				PathNode neighbor = result.get(neighborEdge.key);
+				int newDistance = myNode.shortestDistanceToStart + neighborEdge.distance;
+				if (neighbor.shortestDistanceToStart == null || newDistance <= neighbor.shortestDistanceToStart) {
+					unseen.remove(neighbor);
+					if (neighbor.shortestDistanceToStart == null || newDistance < neighbor.shortestDistanceToStart) {
+						neighbor.previousHops.clear();
+					} // else same distance
+					neighbor.previousHops.add(myNode.key);
+					neighbor.shortestDistanceToStart = newDistance;
+					unseen.add(neighbor);
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	private List<PathNode> bestEndNodes(Map<PathNodeKey, PathNode> pathMap) {
+		List<PathNode> endNodes = pathMap.values().stream().filter(node -> node.key.position.equals(this.end)).collect(Collectors.toList());
+		if (endNodes.isEmpty()) {
+			throw new RuntimeException("No path to end found");
+		}
+		Collections.sort(endNodes, PathNode.getMinDistanceComparator());
+		int bestScore = endNodes.get(0).shortestDistanceToStart;
+		endNodes.removeIf(node -> node.shortestDistanceToStart == null || node.shortestDistanceToStart > bestScore);
+		return endNodes;
+	}
+	
+	private boolean isNodeAccessible(PathNodeKey key) {
+		Coords myCoords = key.position;
+		Coords accessorCoords = myCoords.applyOffset(key.facing.oppositeDirection());
+		return this.isInBounds(accessorCoords) && this.pathCoords.contains(accessorCoords);
+	}
+	
+	private List<PathEdge> getAdjacentEdges(PathNodeKey node) {
+		List<PathEdge> result = new ArrayList<PathEdge>();
 		
 		// Check forward, right, and left; not backward
 		Coords myCoords = node.position;
@@ -178,9 +237,9 @@ public class Maze {
 	}
 	
 	// Destructive to collection
-	private void addIfValid(Collection<PathNodeWithDistance> collection, Coords position, Dir direction, int distance) {
+	private void addIfValid(Collection<PathEdge> collection, Coords position, Dir direction, int distance) {
 		if (this.isInBounds(position) && this.pathCoords.contains(position)) {
-			collection.add(new PathNodeWithDistance(new PathNode(position, direction), distance));
+			collection.add(new PathEdge(new PathNodeKey(position, direction), distance));
 		}
 	}
 	
@@ -191,43 +250,26 @@ public class Maze {
 				row >= 0 && row < this.height;
 	}
 	
-	private record PathNode(Coords position, Dir facing) {}
+	private record PathNodeKey(Coords position, Dir facing) {}
 	
-	private class PathNodeWithDistance {
-		final PathNode node;
-		Integer distance = null; // null is infinity
+	private record PathEdge(PathNodeKey key, int distance) {}
+	
+	private class PathNode {
+		final PathNodeKey key;
+		Integer shortestDistanceToStart = null; // null is infinity
+		List<PathNodeKey> previousHops = new ArrayList<PathNodeKey>();
 		
-		PathNodeWithDistance(PathNode node) {
-			this.node = node;
+		PathNode(PathNodeKey key) {
+			this.key = key;
 			return;
 		}
 		
-		PathNodeWithDistance(PathNode node, int distance) {
-			this.node = node;
-			this.distance = distance;
-			return;
+		Integer shortestDistanceToStart() {
+			return this.shortestDistanceToStart;
 		}
 		
-		Integer distance() {
-			return distance;
-		}
-		
-		@Override
-		public boolean equals(Object o) {
-			boolean equal = false;
-			
-			if (o instanceof PathNodeWithDistance) {
-				PathNodeWithDistance other = (PathNodeWithDistance) o;
-				equal = this.node.equals(other.node) &&
-						this.distance == other.distance;
-			}
-			
-			return equal;
-		}
-		
-		@Override
-		public int hashCode() {
-			return this.node.hashCode() ^ this.distance;
+		static Comparator<PathNode> getMinDistanceComparator() {
+			return Comparator.comparing(PathNode::shortestDistanceToStart, Comparator.nullsLast(Comparator.naturalOrder()));
 		}
 	}
 }

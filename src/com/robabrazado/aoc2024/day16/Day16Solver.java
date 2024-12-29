@@ -17,7 +17,12 @@ public class Day16Solver extends Solver {
 		Maze maze = new Maze(puzzleInput);
 		System.out.println(maze);
 		
-		return String.valueOf(maze.bestPathScore());
+		if (partOne) {
+			return String.valueOf(maze.bestPathScore());
+		} else {
+//			System.out.println(maze.toStringWithBestSeats());
+			return String.valueOf(maze.bestSeatCount());
+		}
 	}
 	
 }

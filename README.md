@@ -156,7 +156,17 @@ Just a small side note: I'm getting more and more fond of backing grid-like puzz
 
 [On day 28] Yeah...I'm coming back to this now, and I'm just going to start over.
 
-[Later] I finished part 1 with what I think is some pretty straightforward pathfinding that I think I may have made unnecessarily complicated with some suboptimal object design, but so it goes. Looking at part 2...I'm thinking initially it only needs minor modification to work, so...we'll see how that goes. Even so...I'm strongly considering making part 2 code completely separate from part 1 just so part 1's performance (which is already shaky) won't necessarily get even worse by depending on part 2 functionality.
+[Later] I finished part 1 with what I think is some pretty straightforward pathfinding that I think I may have made unnecessarily complicated with some suboptimal object design, but so it goes. Looking at part 2...I'm thinking initially it only needs minor modification to work, so...we'll see how that goes. Even so...I'm strongly considering making part 2 code completely separate from part 1 just so part 1's performance (which is already shaky) won't necessarily get even worse by depending on part 2 functionality. [After some thought.] Actually, no...might was well just stick with what I've got. [After some more thought.] Know what? Fuck it. I wasn't that happy with the original implementation of part 1, so I'm just going to refit the whole thing, now with part 2 in mind.
+
+[On day 29] It turned out that I fucked around so much with the refit that I had to go to bed before I was done debugging the part 2 functionality. I got it working when I got up the morning, though, so...it's almost like I finished it last night. :) During debugging, I broke a lot of stuff out into separate methods that didn't really need to be in separate methods _except_ for debugging (especially debugging output), so...the method structure is all messed up, but eh.
+
+**Spoilers for day 16**
+
+Part 1 was, I think, supposed to be a fairly straightforward pathfinding operation. It's possible I could have squeezed out an ounce more of performance with something like A\*, but I tend to stick with good ol' Dijkstra, so that's what I did this time, too. Turned out to be for the best, I think, at least for me, because I don't know enough about adapting A\* to find multiple paths.
+
+Anyway, between parts 1 and 2, in theory the only big change I needed to make was storing the actual routes of the paths instead of only storing the distances. I think that seemed fine on its own. But the refit I had in mind changed the whole means by which I was collecting pathfinding information. I was shy about making it a part of the object state, but in retrospect, I'm not really sure why. In any case, that took some amount of doing, and then the collecting of the route information (which should have been the easy part!) actually seemed to give me the most trouble toward the end. I had introduced some subtle error that didn't show up in the test data but was fouling my live data run. So that's always fun. But, anyway...this _should_ have been pretty straightforward Dijkstra's stuff, but I just couldn't seem to get it together for this one. On the upside, I'm leaning a lot more into Java Streams now and having fun with that.
+
+**End spoilers**
 
 ## Day 17: Chronospatial Computer
 
