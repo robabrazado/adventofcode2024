@@ -15,7 +15,6 @@ The main entry point is com.robabrazado.aoc2024.Aoc2024Cli, and it takes 2 or 3 
 
 Where `day` is the number of the day to solve, `part` is `1` or `2`, and the optional `test` argument makes it use test data input or not as described above.
 
-
 ---
 
 ## Day 1: Historian Hysteria
@@ -217,6 +216,14 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 ## Day 21: Keypad Conundrum
 
 [On day 22] I started work on this on day 21 but bungled it somehow. As with Day 16, by the time I end up getting back to this, I might start over.
+
+[On day 29] Yeah...I think I'm largely starting over with this. I'll keep some of the basic object structure from before if it still makes sense, but I'm pretty much rewriting all the guts.
+
+[Some time later] Okay, I'm just scrapping this whole thing and starting over.
+
+[A lot of time later] This is surely the most cockamamie thing I have ever tried to cobble together so far for this year's AoC, and it keeps blowing out my memory heap. I am clearly doing something very wrong. The really sad part is that it works for three nested controllers, but not the four I need for the puzzle. I'm out of time for the day, and I don't know when I can get back to this, so I'm just kind of leaving a note for myself. This is a bummer!
+
+[On day 30] As tends to go, I had inspiration last night after I had shut everything down about how to fix this. I don't have time to work on it at the time of this writing, but I am committing the work I've done so far, even though I'm going to largely rewrite everything. One, it's bordering on unhinged, and I want to save it. :) Two...who knows, it might even come in handy later! I have seen part 2 yet, so maybe I'll get to make use of something unhinged after all. It's not a terrible commit. At least it's better than the version I was bughunting before where it turned out my numeric keypad didn't have a "1 2 3" row. :D
 
 ## Day 22: Monkey Market
 
