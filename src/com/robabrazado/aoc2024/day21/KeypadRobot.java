@@ -39,6 +39,15 @@ import com.robabrazado.aoc2024.grid.Dir;
  * returning the shortest commands, on the assumption that one of the
  * shortest commands for me will be shortest for my controller, as well.
  * If that needs to change, the method signatures are already set up.
+ * 
+ * [Much later, during part 1]
+ * 
+ * It having been demonstrated that I WILDLY overengineered this, I had
+ * considered starting over again, but I realized I could just basically
+ * put a governor on this thing so the puzzle wouldn't make it keep
+ * running out of RAM. So the structure on this is, I'm sure, all messed
+ * up. Perhaps I'll come back to optimize...perhaps not. It will probably
+ * depend on what part 2 of the puzzle looks like.
  */
 public class KeypadRobot {
 	private final KeypadType keypadType;
@@ -88,51 +97,46 @@ public class KeypadRobot {
 		return this;
 	}
 	
-	// Assumes starting at 'A' position; terminates each button press with ACT command
-	public String getShortestCommandForBaseInput(String input) {
-		List<String> commands = this.getCommandsForBaseInput(input);
-		if (commands.isEmpty()) {
-			throw new RuntimeException("Robot has no commands for base input " + input);
-		}
-		return commands.get(0);
+	// Assumes starting at 'A' position
+	public String getShortCommandForBaseInput(String input) {
+		return this.getShortCommandsForBaseInput(input, true).get(0);
 	}
 	
-	// Assumes starting at 'A' position; terminates each button press with ACT command
-	public List<String> getCommandsForBaseInput(String input) {
+	public List<String> getShortCommandsForBaseInput(String input, boolean exactlyOneResult) {
 		List<String> result;
 		if (this.worker != null) {
-			List<String> workerCommands = worker.getCommandsForBaseInput(input);
+			List<String> workerCommands = worker.getShortCommandsForBaseInput(input, exactlyOneResult);
 			if (workerCommands.isEmpty()) {
 				throw new RuntimeException("Robot's worker reports no command options for base input " + input);
 			}
 			result = new ArrayList<String>();
+			/*
+			 * I think this is the part that screws me on RAM. For now, only call this
+			 * with exactlyOneResult = true. 
+			 */
 			result = workerCommands.stream()
 					.map(workerCommand -> this.getShortestCommandForMyInput(workerCommand))
 					.collect(Collectors.toList());
 		} else {
 			// I AM BASE
-			result = this.getCommandsForMyInput(input);
+			result = this.getShortCommandsForMyInput(input, exactlyOneResult);
+			Collections.sort(result, Comparator.comparingInt(String::length));
 		}
-		Collections.sort(result, Comparator.comparingInt(String::length));
 		return result;
 	}
 	
 	// Assumes starting at 'A' position; terminates each button press with ACT command
 	public String getShortestCommandForMyInput(String input) {
-		List<String> commands = this.getCommandsForMyInput(input);
-		if (commands.size() < 1) {
-			throw new RuntimeException("Robot has no commands for this input");
-		}
-		return commands.get(0);
+		return this.getShortCommandsForMyInput(input, true).get(0);
 	}
 	
 	// Assumes starting at 'A' position; terminates each button press with ACT command
-	public List<String> getCommandsForMyInput(String input) {
+	public List<String> getShortCommandsForMyInput(String input, boolean exactlyOneResult) {
 		List<String> commands = new ArrayList<String>(Collections.singletonList(""));
 		char[] chars = input.toCharArray();
 		char from = 'A';
 		for (char to : chars) {
-			List<String> newCommands = this.getCommandsForMyInput(from, to, true);
+			List<String> newCommands = this.getShortCommandsForMyInput(from, to, exactlyOneResult);
 			if (newCommands.isEmpty()) {
 				throw new RuntimeException("Robot found no command string from " + from + " to " + to);
 			}
@@ -149,9 +153,14 @@ public class KeypadRobot {
 		return commands;
 	}
 	
-	public List<String> getCommandsForMyInput(char from, char to, boolean terminateWithAct) {
+	public String getShortCommandForMyInput(char from, char to) {
+		return this.getShortCommandsForMyInput(from, to, true).get(0);
+	}
+	
+	// Due to my bad decisions, calling with "exactly one result" flag always skips caching; maybe fix later
+	public List<String> getShortCommandsForMyInput(char from, char to, boolean exactlyOneResult) {
 		CharPair pair = new CharPair(from, to);
-		if (!this.myCommandCache.containsKey(pair)) {
+		if (!this.myCommandCache.containsKey(pair) || exactlyOneResult) {
 			List<String> commands = new ArrayList<String>();
 			
 			this.checkKey(from);
@@ -211,10 +220,21 @@ public class KeypadRobot {
 								colCount <= maxColOffset && rowCount <= maxRowOffset;
 					}
 					if (canUse) {
-						if (terminateWithAct) {
-							strb.append(Command.ACT.c);
+						// All my command strings terminate with ACT
+						commands.add(strb.append(Command.ACT.c).toString());
+						if (exactlyOneResult) {
+							break;
 						}
-						commands.add(strb.toString());
+					}
+				}
+				
+				// HEADS UP: early exit
+				if (exactlyOneResult) {
+					if (commands.size() == 1) {
+						return commands;
+					} else {
+						throw new RuntimeException(String.format("Robot was asked for 1 result but produced %d; from '%c' to '%c'",
+								commands.size(), from, to));
 					}
 				}
 			} else {

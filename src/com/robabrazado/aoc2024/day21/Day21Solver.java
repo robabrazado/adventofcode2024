@@ -19,10 +19,16 @@ public class Day21Solver extends Solver {
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
 		BigInteger result = BigInteger.ZERO;
-		KeypadRobot myRobot = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL).setWorker(		// I control crowded robot, who controls...
-				new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL).setWorker(						// ...cold robot, who controls...
-						new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL).setWorker(				// ...radiation robot, who controls...
-								new KeypadRobot(KeypadRobot.KeypadType.NUMERIC))));					// ...vacuum robot, who controls the door.
+		
+		KeypadRobot robotAtDepressurizedControllerAtRadiation = new KeypadRobot(KeypadRobot.KeypadType.NUMERIC);
+		
+		KeypadRobot robotAtRadiationControllerAtFreezing = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL);
+		robotAtRadiationControllerAtFreezing.setWorker(robotAtDepressurizedControllerAtRadiation);
+		
+		KeypadRobot robotAtFreezingControllerAtCrowded = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL);
+		robotAtFreezingControllerAtCrowded.setWorker(robotAtRadiationControllerAtFreezing);
+		
+		KeypadRobot myRobot = robotAtFreezingControllerAtCrowded;
 		
 		Iterator<String> it = puzzleInput.iterator();
 		Pattern inputP = Pattern.compile("^(\\d+)A$");
@@ -37,39 +43,15 @@ public class Day21Solver extends Solver {
 			}
 			System.out.println("Checking base input " + baseInput);
 			
-//			String command = myRobot.getShortestCommandForBaseInput(baseInput);
-			String command = "SOME FOO";
+			String command = myRobot.getShortCommandForBaseInput(baseInput);
 			System.out.println("Found command string " + command);
+			
+			System.out.println("Previous command string " + robotAtRadiationControllerAtFreezing.getShortCommandForBaseInput(baseInput));
 			
 			int complexity = numericPortion * command.length();
 			System.out.println("Complexity " + complexity);
 			result = result.add(BigInteger.valueOf(complexity));
 		}
-		
-		// TESTING SHIT
-		
-		System.out.println("---");
-		
-		String testBaseInput = "029A";
-		
-		KeypadRobot testNumericRobot = new KeypadRobot(KeypadRobot.KeypadType.NUMERIC);
-		System.out.println(testNumericRobot.getShortestCommandForBaseInput(testBaseInput));
-		
-		KeypadRobot testDirectionalRobot = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL);
-		testDirectionalRobot.setWorker(testNumericRobot);
-		System.out.println(testDirectionalRobot.getShortestCommandForBaseInput(testBaseInput));
-		
-		KeypadRobot testDirectionalRobot2 = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL);
-		testDirectionalRobot2.setWorker(testDirectionalRobot);
-		System.out.println(testDirectionalRobot2.getShortestCommandForBaseInput(testBaseInput));
-		
-		KeypadRobot testDirectionalRobot3 = new KeypadRobot(KeypadRobot.KeypadType.DIRECTIONAL);
-		testDirectionalRobot3.setWorker(testDirectionalRobot2);
-		System.out.println(testDirectionalRobot3.getShortestCommandForBaseInput(testBaseInput));
-		
-		System.out.println("---");
-		
-		// END TESTING
 		
 		return result.toString();
 		
