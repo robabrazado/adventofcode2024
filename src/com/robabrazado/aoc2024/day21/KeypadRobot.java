@@ -1,5 +1,7 @@
 package com.robabrazado.aoc2024.day21;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,288 +15,189 @@ import java.util.stream.Collectors;
 import com.robabrazado.aoc2024.grid.Coords;
 import com.robabrazado.aoc2024.grid.Dir;
 
-/*
- * I got quite far up my own ass designing with solution under a different
- * (and I guess ultimately more confusing) object structure, so I'm just
- * starting over.
- * 
- * The new world is this main object, the keypad robot. It is looking at
- * and pushing buttons on a keypad, and this is the keypad I'm referring
- * to when I talk about the robot's keypad. It is also assumed to be
- * operated by a keypad, but we don't talk about that one. Instead, the
- * robot accepts "commands." The structure is a chain of robots accepting
- * commands and operating a keypad...it just happens that most of these
- * robots are, in the fiction, accepting these commands via other keypads.
- * But object-wise, this is just a chain of robots controlling robots.
- * The "base" robot is the one at the door; it is not controlling another
- * robot. Any given robot in the chain is the "controller." If the
- * controller is controlling another robot, that second robot is the
- * "worker." I think those are all the levels I need to know about.
- * The robot at the other (non-base) end of the chain is accepting
- * commands from the player; that's the one we'll be interfacing with.
- * Information we need from further down the chain will be passed
- * worker to worker as necessary, with the chain ending at the base robot.
- * 
- * For the moment, all the methods that return multiple commands are only
- * returning the shortest commands, on the assumption that one of the
- * shortest commands for me will be shortest for my controller, as well.
- * If that needs to change, the method signatures are already set up.
- * 
- * [Much later, during part 1]
- * 
- * It having been demonstrated that I WILDLY overengineered this, I had
- * considered starting over again, but I realized I could just basically
- * put a governor on this thing so the puzzle wouldn't make it keep
- * running out of RAM. So the structure on this is, I'm sure, all messed
- * up. Perhaps I'll come back to optimize...perhaps not. It will probably
- * depend on what part 2 of the puzzle looks like.
- */
+// See Day21Solver for explanation on object structure
 public class KeypadRobot {
-	private final KeypadType keypadType;
-	private final Set<Key> keys;
-	private final int width;
-	private final int height;
+	private final String name;
+	private final Keypad controller;
+	private final Keypad worker;
 	
-	private KeypadRobot worker = null;
+	public KeypadRobot(Keypad worker, String robotName) {
+		this(worker, robotName, (String) null);
+	}
 	
-	private Map<Character, Key> charKeyMap = null;
-	private Map<Coords, Key> coordsKeyMap = null;
-	private Map<CharPair, List<String>> myCommandCache = new HashMap<CharPair, List<String>>(); // For now just the shortest commands are cached
-	
-	
-	public KeypadRobot(KeypadType type) {
-		this.keypadType = type;
-		Set<Key> tempKeys = new HashSet<Key>();
-		char[][] grid = type.keyGrid;
-		this.height = grid.length;
-		this.width = 3; // Boo
-		
-		for (int row = 0; row < this.height; row++) {
-			for (int col = 0; col < this.width; col++) {
-				char c = grid[row][col];
-				if (c != 0) {
-					Coords coords = new Coords(col, row);
-					Key key = new Key(c, coords);
-					tempKeys.add(key);
-				}
-			}
+	public KeypadRobot(Keypad worker, String robotName, String controllingKeypadName) {
+		if (worker == null) {
+			throw new RuntimeException("Robot must have a worker. Robot must have a purpose.");
 		}
-		this.keys = Collections.unmodifiableSet(tempKeys);
+		// TODO check for circular references? Somehow?
+		this.worker = worker;
+		
+		if (robotName == null || robotName.isEmpty()) {
+			throw new RuntimeException("Robot must have a name. Robot is an invidual.");
+		}
+		this.name = robotName;
+		
+		if (controllingKeypadName == null) {
+			controllingKeypadName = "Controller of " + robotName;
+		}
+		this.controller = new Keypad(Keypad.KeypadType.DIRECTIONAL, controllingKeypadName);
+		
 		return;
 	}
 	
-	// Returns self
-	public KeypadRobot setWorker(KeypadRobot worker) {
-		KeypadRobot checkCircular = this;
-		while (checkCircular != null) {
-			if (checkCircular == worker) {
-				throw new RuntimeException("Robot cannot be its own worker. Such is Robot existence.");
-			} else {
-				checkCircular = checkCircular.worker;
-			}
-		}
-		this.worker = worker;
-		return this;
+	public String getName() {
+		return this.name;
 	}
 	
-	// Assumes starting at 'A' position
-	public String getShortCommandForBaseInput(String input) {
-		return this.getShortCommandsForBaseInput(input, true).get(0);
+	public Keypad getWorker() {
+		return this.worker;
 	}
 	
-	public List<String> getShortCommandsForBaseInput(String input, boolean exactlyOneResult) {
-		List<String> result;
-		if (this.worker != null) {
-			List<String> workerCommands = worker.getShortCommandsForBaseInput(input, exactlyOneResult);
-			if (workerCommands.isEmpty()) {
-				throw new RuntimeException("Robot's worker reports no command options for base input " + input);
-			}
-			result = new ArrayList<String>();
-			/*
-			 * I think this is the part that screws me on RAM. For now, only call this
-			 * with exactlyOneResult = true. 
-			 */
-			result = workerCommands.stream()
-					.map(workerCommand -> this.getShortestCommandForMyInput(workerCommand))
-					.collect(Collectors.toList());
+	public Keypad getController() {
+		return this.controller;
+	}
+
+	public int getBestCommandLengthForBaseInput(String baseInput) {
+		if (this.worker.getWorker() != null) {
+			throw new RuntimeException("Not yet implemented"); // TODO
 		} else {
 			// I AM BASE
-			result = this.getShortCommandsForMyInput(input, exactlyOneResult);
-			Collections.sort(result, Comparator.comparingInt(String::length));
+			throw new RuntimeException("Not yet implemented"); // TODO
 		}
-		return result;
 	}
 	
-	// Assumes starting at 'A' position; terminates each button press with ACT command
-	public String getShortestCommandForMyInput(String input) {
-		return this.getShortCommandsForMyInput(input, true).get(0);
-	}
+	/*
+	 * Here is the heart of finding the best command strings without actually
+	 * generating the command strings. Actually generating the command strings
+	 * was my downfall in the past.
+	 * 
+	 * These notes started out as me organizing my thoughts before writing the
+	 * code, and if all goes well, they'll be the post-coding documentation as
+	 * well. :) If not, I'll modify as necessary.
+	 * 
+	 * All of this is done through grid navigation with basically no
+	 * constraints, so all route lengths (inputs) can be calculated with
+	 * taxicab distance. I say "basically" before, because the one constraint
+	 * is that the robot arm (cursor) never occupy the empty space (the null
+	 * key), but our saving grace is that the null key is always in the
+	 * corner, so there will always be an alternate route of equivalent
+	 * length. The length of the best route from one key to another will
+	 * always be the taxicab distance between the keys. In addition, the
+	 * shortest route will always consist of some non-negative number of
+	 * column offsets in one direction, and some non-negative number of row
+	 * offsets in one direction, and then an ACT command. In terms of
+	 * route length, the order of these commands doesn't matter (except
+	 * the ACT has to be at the end), but in terms of the command strings
+	 * needed to execute the routes, the best (meaning easiest to input)
+	 * route will be the ones with the fewest arm moves. Consider that inputs
+	 * "<<^A" and "<^<A" have the same route length and achieve the same
+	 * result, but the command string for the second will always be longer,
+	 * because it has to move the arm off the '<' key to the '^' key and back
+	 * to the '<' key, as opposed to the first command which doesn't have to
+	 * move the arm at all between the first '<' and the second '<' press.
+	 * Therefore, there are at most two choices for "friendliest" path
+	 * between two keys: (1) all row offsets followed by all column offsets
+	 * or (2) all column offsets followed by all row offsets. If one of
+	 * those paths crosses the null key, then there is only one choice
+	 * for friendliest path. In either case, the friendliest path can be
+	 * described with some simple metadata: the number of moves needed
+	 * in each direction.
+	 * 
+	 * To decide the better of the two friendliest arrangements, the command
+	 * string length (cost) of the arrangements is the tiebreaker. Each
+	 * keypress comes with some associated cost. If the Robot's arm is
+	 * poised above the desired key, then the cost is only 1 (the ACT
+	 * command). In any other circumstance, there is a cost associated with
+	 * moving the arm from one key to another. Our assumption above, based
+	 * on this principle, is that the fewer key changes there are in the
+	 * input, the better. The next corollary is that we can compare the
+	 * costs of the key changes needed in each arrangement to decide which
+	 * is less costly. In the case of the arrangements we're discussing,
+	 * there are (at most) three key changes to consider: 'A' (always
+	 * the starting point for a command string) to the first offset key,
+	 * the first offset key to the second offset key, and the second
+	 * offset key back to 'A'. (Clearly, if one of the offset counts
+	 * is zero, we can skip the middle key change, but also...that
+	 * being the case, there is only one friendliest arrangement, so...)
+	 * 
+	 * It is worth noting that cost(X,Y) can NOT be assumed equal to
+	 * cost(Y, X) in all cases. In the directional keypad in the puzzle,
+	 * switching from row offset to column offset is the same in both
+	 * directions, which is fine (though likely an optimization I won't
+	 * be taking advantage of), but cost('A', '<') is always greater
+	 * than cost('A', '>'), for example, so just reversing an input's
+	 * directions will result in a different command string length.
+	 *
+	 * A "keypress" is a unit of measurement that applies to both inputs and
+	 * command strings but can mean different things. Each keypress of input
+	 * translates to one keypress of command string, but each keypress of
+	 * input is one character, while each keypress of command string is...
+	 * another command string. There is NOT a one-to-one mapping between a
+	 * given keypress of input and the resulting command string. The command
+	 * string for a particular keypress (and therefore also the associated
+	 * cost) depends on the starting position of the Robot's arm (which is
+	 * always 'A' at the beginning).
+	 * 
+	 * The last big thing to keep in mind is that all command strings derived
+	 * from input keypresses will always terminate with an ACT command.
+	 *
+	 * Example:
+	 * 
+	 * Consider one Robot, the "asker," asks a second Robot, the "answerer,"
+	 * for the friendliest command string metadata for the route from 'X' to
+	 * 'Y'. The answerer determines the metadata of the friendliest path:
+	 * C number of column offsets in H direction, R number of row offsets in
+	 * V direction, and whether either arrangement (column-first or row-first)
+	 * passes over the null key and is disqualified. This information is
+	 * passed back to the asker. The asker can then determine based on the
+	 * metadata which arrangement is less costly command-wise.
+	 * 
+	 * If there is only one valid arrangement based on the answerer's
+	 * metadata, then that's it; we're done here. If there are two choices,
+	 * the asker can determine the better option by comparing the costs.
+	 * First, we can accept that cost(X, X) for any X will be 1 (for the ACT
+	 * at the end and no prior movement). As a result, we only need to compare
+	 * the costs of key changes. For example, consider the metadata 3L2U
+	 * (three left, two up), and assume both arrangements ("LLLUU" and
+	 * "UULLL") are valid inputs. The command strings to compare ("LLLUUA" and
+	 * "UULLLA") can be compared by examining
+	 * 
+	 *     cost(A, L) + cost(L, U) + cost(U, A)
+	 * 
+	 *                      vs.
+	 * 
+	 *     cost(A, U) + cost(U, L) + cost(L, A)
+	 *
+	 * because the rest of the middle costs (whatever they are) will be the
+	 * same between arrangements. (Non-changing costs will either be
+	 * cost(U, U) or cost(L, L), which both evaluate to 1.)
+	 * 
+	 * P.S., mostly to myself. Converting inputs to metadata can probably be
+	 * handled best by the Keypads; the conversion will be the same for
+	 * different Keypads with the same configuration, which also means they
+	 * can be cached (memoized) class-wide. In the above example, that would
+	 * be the answerer querying its worker. The asker still must make the
+	 * choice between same-length arrangements based on the needs of the
+	 * asker's controller. In the puzzle, this will always be a directional
+	 * Keypad, but that's my one concession to generalizing the functionality;
+	 * it's the Robot's role to translate input to their controller to
+	 * commands.
+	 */
 	
-	// Assumes starting at 'A' position; terminates each button press with ACT command
-	public List<String> getShortCommandsForMyInput(String input, boolean exactlyOneResult) {
-		List<String> commands = new ArrayList<String>(Collections.singletonList(""));
-		char[] chars = input.toCharArray();
-		char from = 'A';
-		for (char to : chars) {
-			List<String> newCommands = this.getShortCommandsForMyInput(from, to, exactlyOneResult);
-			if (newCommands.isEmpty()) {
-				throw new RuntimeException("Robot found no command string from " + from + " to " + to);
-			}
-			List<String> oldCommands = new ArrayList<String>(commands);
-			commands.clear();
-			for (String oldCommand : oldCommands) {
-				for (String newCommand : newCommands) {
-					commands.add(oldCommand + newCommand);
-				}
-			}
-			from = to;
-		}
+	@Override
+	public String toString() {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw, true);
 		
-		return commands;
-	}
-	
-	public String getShortCommandForMyInput(char from, char to) {
-		return this.getShortCommandsForMyInput(from, to, true).get(0);
-	}
-	
-	// Due to my bad decisions, calling with "exactly one result" flag always skips caching; maybe fix later
-	public List<String> getShortCommandsForMyInput(char from, char to, boolean exactlyOneResult) {
-		CharPair pair = new CharPair(from, to);
-		if (!this.myCommandCache.containsKey(pair) || exactlyOneResult) {
-			List<String> commands = new ArrayList<String>();
-			
-			this.checkKey(from);
-			Key fromKey = this.charKeyMap().get(from);
-			this.checkKey(to);
-			Key toKey = this.charKeyMap().get(to);
-			
-			Coords fromCoords = fromKey.position;
-			Coords toCoords = toKey.position;
-			Coords offset = fromCoords.getOffsetTo(toCoords);
-			
-			/* Okay, this may be kinda weird. So at this point, I know the row
-			 * and col offset from the start to the end, so...first off, I
-			 * know the shortest command will have a length of the taxicab
-			 * distance away. Without other constraints, all commands that
-			 * lead from start to end are valid, and there's only two ways
-			 * to go (row offset and col offset), so that sounds like a
-			 * string of bits to me. So the number of possible shortest
-			 * commands is 2^N where N is the taxicab distance. So I'm
-			 * generating those permutations and saving the ones that
-			 * don't enter the forbidden zone where there's no key.
-			 * Also any arrangement that has too many of one kind of
-			 * offset are out (because they don't lead to end).
-			 */
-			Dir colOffsetDir = offset.getCol() > 0 ? Dir.E : Dir.W;
-			Command colMove = Command.getCommandByDir(colOffsetDir);
-			Dir rowOffsetDir = offset.getRow() > 0 ? Dir.S : Dir.N;
-			Command rowMove = Command.getCommandByDir(rowOffsetDir);
-			int maxColOffset = Math.abs(offset.getCol());
-			int maxRowOffset = Math.abs(offset.getRow());
-			int taxicabDistance = maxColOffset + maxRowOffset; // Number of bits in the command string
-			if (taxicabDistance >= 31) {
-				throw new RuntimeException("Robot is not equipped for this level of keypad grandiosity");
-			} else if (taxicabDistance > 0) {
-				int numCombos = 1 << taxicabDistance;
-				for (int commandBits = 0; commandBits < numCombos; commandBits++) {
-					// Arbitrarily, I'm calling col 0 and row 1.
-					int colCount = 0;
-					int rowCount = 0;
-					StringBuilder strb = new StringBuilder();
-					Coords cursor = fromKey.position;
-					boolean canUse = true;
-					for (int idxOffset = 0; idxOffset < taxicabDistance && canUse; idxOffset++) { // Check each bit (highest to lowest) and assemble command
-						int checkBit = (numCombos / 2) >> idxOffset;
-						if ((commandBits & checkBit) == 0) {
-							// Column
-							strb.append(colMove.c);
-							cursor = cursor.applyOffset(colOffsetDir);
-							colCount++;
-						} else {
-							// Row
-							strb.append(rowMove.c);
-							cursor = cursor.applyOffset(rowOffsetDir);
-							rowCount++;
-						}
-						canUse = this.isInBounds(cursor) && this.coordsKeyMap().containsKey(cursor) &&
-								colCount <= maxColOffset && rowCount <= maxRowOffset;
-					}
-					if (canUse) {
-						// All my command strings terminate with ACT
-						commands.add(strb.append(Command.ACT.c).toString());
-						if (exactlyOneResult) {
-							break;
-						}
-					}
-				}
-				
-				// HEADS UP: early exit
-				if (exactlyOneResult) {
-					if (commands.size() == 1) {
-						return commands;
-					} else {
-						throw new RuntimeException(String.format("Robot was asked for 1 result but produced %d; from '%c' to '%c'",
-								commands.size(), from, to));
-					}
-				}
-			} else {
-				// From and to are the same? I guess?
-				commands.add("");
-			}
-			
-			this.myCommandCache.put(pair, commands);
-		}
-		return this.myCommandCache.get(pair);
-	}
-	
-	protected void checkKey(char c) {
-		if (!this.charKeyMap().containsKey(c)) {
-			throw new RuntimeException(this.keypadType.name() + " Robot does not see any '" + c + "' key");
-		}
-	}
-	
-	protected void checkKey(Key key) {
-		if (!this.keys.contains(key)) {
-			throw new RuntimeException(this.keypadType.name() + " Robot does not see key " + key.toString());
-		}
-	}
-	
-	protected boolean isInBounds(Coords c) {
-		int col = c.getCol();
-		int row = c.getRow();
-		return col >= 0 && col < this.width &&
-				row >= 0 && row < this.height;
-	}
-	
-	protected Map<Character, Key> charKeyMap() {
-		if (this.charKeyMap == null) {
-			this.charKeyMap = new HashMap<Character, Key>();
-			this.keys.stream().forEach(key -> this.charKeyMap.put(key.c, key));
-		}
-		return this.charKeyMap;
-	}
-	
-	protected Map<Coords, Key> coordsKeyMap() {
-		if (this.coordsKeyMap == null) {
-			this.coordsKeyMap = new HashMap<Coords, Key>();
-			this.keys.stream().forEach(key -> this.coordsKeyMap.put(key.position, key));
-		}
-		return this.coordsKeyMap;
-	}
-	
-	public enum KeypadType {
-		NUMERIC			(new char[][] {{'7', '8', '9'}, {'4', '5', '6'}, {'1', '2', '3'}, {0, '0', 'A'}}),
-		DIRECTIONAL		(new char[][] {{0, '^', 'A'}, {'<', 'v', '>'}});
+		pw.println("Robot " + this.name);
+		pw.println("Controlled by: " + this.controller.getName());
+		pw.println("Controlling: " + this.worker.getName());
 		
-		final char[][] keyGrid;
-		
-		KeypadType(char[][] keys) {
-			this.keyGrid = keys;
-			return;
-		}
-		
+		return sw.toString();
 	}
 	
+	// This is primarily to bridge between existing Dir uses and the new Keypad uses
+	// Commands probably won't be directly useful by consumers, as consumers should issue commands via Robot's controlling Keypad
 	public enum Command {
 		UP		('^', Dir.N),
 		DOWN	('v', Dir.S),
@@ -325,25 +228,4 @@ public class KeypadRobot {
 			}
 		}
 	}
-	
-	class Key {
-		final char c;
-		final Coords position;
-		
-		Key(char c, Coords position) {
-			if (c == 0) {
-				throw new RuntimeException("Robot is forbidden from gazing upon the null key");
-			}
-			this.c = c;
-			this.position = position;
-			return;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("'%c' key at %s", this.c, this.position.toString());
-		}
-	}
-	
-	record CharPair(char from, char to) {}
 }
