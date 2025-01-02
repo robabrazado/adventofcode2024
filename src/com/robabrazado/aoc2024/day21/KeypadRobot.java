@@ -3,6 +3,7 @@ package com.robabrazado.aoc2024.day21;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,22 +16,120 @@ import java.util.stream.Collectors;
 import com.robabrazado.aoc2024.grid.Coords;
 import com.robabrazado.aoc2024.grid.Dir;
 
-// See Day21Solver for explanation on object structure
+/*
+ * [These notes started out as me organizing my thoughts before writing the
+ * code. At this point, I've done some coding and changed my mind about some
+ * things. Below are the updated notes.]
+ * 
+ * Now that I better know what I'm talking about, let me start with defining
+ * my terms (instead of figuring them out as I go along). I'm dealing
+ * primarily with two objects, Keypad and Robot, that live in a controller-
+ * worker chain. This chain is basically structured like a double-linked list,
+ * so I'll use terms in that context. The "list" consists of nodes of
+ * alternating types, Keypad and Robot. The head of the list is the
+ * Keypad that controls the door. (The door is not represented in these
+ * objects.) The head Keypad is the worker of a Robot, which is the worker of
+ * a Keypad, which is the worker of a Robot, etc. The tail of the list is the
+ * Keypad being operated by the player. From this, every Robot has a worker
+ * Keypad and a controller Keypad. Every Keypad has a worker Robot and a
+ * controller Robot (except the head has no worker, and the tail has no
+ * controller).
+ * 
+ * An "input" is a collection of "keystrokes" that go into a Keypad. A
+ * "Command" is the instruction that goes into a Robot. In this model,
+ * commands are not issued directly to a Robot, but come from the Robot's
+ * controller, which is a Keypad. E.g., a Keypad receives a '^' keystroke and
+ * (conceptually) transmits an UP command to its worker Robot. (I am...
+ * strongly suspicious that this abstract separation is unnecessary, but the
+ * last time I tried to design without it, I got into trouble. Plus, it
+ * pleases my brain to think a Robot's controller could be later swapped out
+ * without much trouble.) A collections of commands is a "command string."
+ * 
+ * Both input and command strings are represented by character strings.
+ * A "keypress" can be thought of as a unit of measurement. In an input, a
+ * "keypress" represents the movement of a robot arm from one key to another
+ * (or not, for pressing the same key) and the pressing of the key. A keypress
+ * of input is (mostly) just one character, but the specifics of it depend
+ * on the robot arm's previous position, i.e. the previous character. All
+ * command strings assume the robot's arm starts at the 'A' position. One
+ * "keypress" of command string is the list of commands necessary to move the
+ * robot arm to the correct key, which is punctuated at the end by one ACT
+ * command to press the key.
+ * 
+ * A Keypad's role is to have a key configuration of some kind and do its
+ * own pathfinding; it can tell you the best routes from key to key.
+ * A Robot's role is to translate desired input into desired command strings;
+ * it can tell you which are the shortest command strings to produce input.
+ * Those command strings can be used as input for that Robot's controller
+ * Keypad, which is the worker of some other Robot, which translates that
+ * input into its own command strings, and so on up the chain. It happens
+ * that the String representation of a Robot's command string is the same
+ * as the String representation of that Robot's controller Keypad's input.
+ * 
+ * So. Finding best command string for a given input involves two parts:
+ * (1) the optimal route(s) through the Keypad and (2) the shortest command
+ * string(s) for those routes.
+ * 
+ * Navigation between Keypad keys is just grid navigation, so there are many
+ * "shortest" routes between two keys. Regardless of the actual sequence of
+ * moves in each route, shortest routes can be described with a simple piece
+ * of metadata: some number of column changes in one direction and some number
+ * of row changes in another direction. The length of all those routes will
+ * be the taxicab distance between keys. Determining this metadata is the job
+ * of the Keypad.
+ * 
+ * The Robot must then determine, from among the various shortest route
+ * options described by the metadata, which produces the shortest command
+ * string. To begin with, the shortest command strings will result in routes
+ * with the fewest changes in direction. This is because it takes fewer
+ * commands for a Robot to execute the same keystroke many times in a row
+ * than it does to execute keystrokes where it has to move its arm between
+ * presses. Because we know the shortest routes contain the same number
+ * of moves and that the order of them (mostly) doesn't matter, then we want
+ * to choose from the routes with the most number of like moves in a row.
+ * In addition, because the routes only consist of two directions, there are
+ * only two "friendliest" options: (1) all the column changes followed by all
+ * the row changes or (2) all the row changes followed by all the column
+ * changes.
+ * 
+ * If the metadata indicates only one direction of movement (i.e. the number
+ * of either row or column changes is zero) or if one of the friendliest
+ * routes is invalid because it passes over empty space, then there is only
+ * one option for shortest command. Otherwise, there are two options, and the
+ * Robot only needs to know which (if any) of the two resulting command
+ * strings is shorter.
+ * 
+ * Once that is in place, then any Robot can generate its own command string
+ * from the input that the caller wants on the Robot's worker Keypad. That
+ * command string then becomes input for the Robot's controller Keypad,
+ * which is likewise desired input for THAT Keypad's controller, which can
+ * generate its own command string, which becomes input for the next
+ * controller, and so on. This also means that any Robot can determine its
+ * command string for input on the head Keypad by asking its worker to
+ * determine its command string for the head input, and so on, and in that
+ * way, we can ask the last Robot in the chain for its command string for
+ * input to eventually be passed to the head of the chain.
+ */
 public class KeypadRobot {
 	private final String name;
-	private final Keypad controller;
-	private final Keypad worker;
 	
+	Keypad controller;
+	Keypad worker;
+	
+	// Instantiates a robot with a default controller
 	public KeypadRobot(Keypad worker, String robotName) {
 		this(worker, robotName, (String) null);
 	}
 	
+	// Instantiates a robot with a default controller with the specified name
 	public KeypadRobot(Keypad worker, String robotName, String controllingKeypadName) {
 		if (worker == null) {
 			throw new RuntimeException("Robot must have a worker. Robot must have a purpose.");
 		}
-		// TODO check for circular references? Somehow?
-		this.worker = worker;
+		
+		// TODO prevent circular references
+		
+		this.setWorker(worker);
 		
 		if (robotName == null || robotName.isEmpty()) {
 			throw new RuntimeException("Robot must have a name. Robot is an invidual.");
@@ -40,7 +139,7 @@ public class KeypadRobot {
 		if (controllingKeypadName == null) {
 			controllingKeypadName = "Controller of " + robotName;
 		}
-		this.controller = new Keypad(Keypad.KeypadType.DIRECTIONAL, controllingKeypadName);
+		this.setController(new Keypad(Keypad.KeypadType.DIRECTIONAL, controllingKeypadName));
 		
 		return;
 	}
@@ -49,140 +148,132 @@ public class KeypadRobot {
 		return this.name;
 	}
 	
+	public boolean hasWorker() {
+		return this.worker != null;
+	}
+	
+	// Returns non-null or throws
 	public Keypad getWorker() {
+		if (!this.hasWorker()) {
+			throw new IllegalStateException(String.format("%s has no worker", this.name));
+		}
 		return this.worker;
 	}
 	
+	void clearWorker() {
+		if (this.worker != null) {
+			this.worker.controller = null;
+			this.worker = null;
+		}
+		return;
+	}
+	
+	void setWorker(Keypad newWorker) {
+		this.clearWorker();
+		if (newWorker != null) {
+			newWorker.controller = this;
+			this.worker = newWorker;
+		}
+		return;
+	}
+	
+	public boolean hasController() {
+		return this.controller != null;
+	}
+	
+	// Returns non-null or throws
 	public Keypad getController() {
+		if (!this.hasController()) {
+			throw new IllegalStateException(String.format("%s has no controller", this.name));
+		}
 		return this.controller;
 	}
 
-	public int getBestCommandLengthForBaseInput(String baseInput) {
-		if (this.worker.getWorker() != null) {
-			throw new RuntimeException("Not yet implemented"); // TODO
-		} else {
-			// I AM BASE
-			throw new RuntimeException("Not yet implemented"); // TODO
+	void clearController() {
+		if (this.controller != null) {
+			this.controller.worker = null;
+			this.controller = null;
 		}
+		return;
 	}
 	
-	/*
-	 * Here is the heart of finding the best command strings without actually
-	 * generating the command strings. Actually generating the command strings
-	 * was my downfall in the past.
-	 * 
-	 * These notes started out as me organizing my thoughts before writing the
-	 * code, and if all goes well, they'll be the post-coding documentation as
-	 * well. :) If not, I'll modify as necessary.
-	 * 
-	 * All of this is done through grid navigation with basically no
-	 * constraints, so all route lengths (inputs) can be calculated with
-	 * taxicab distance. I say "basically" before, because the one constraint
-	 * is that the robot arm (cursor) never occupy the empty space (the null
-	 * key), but our saving grace is that the null key is always in the
-	 * corner, so there will always be an alternate route of equivalent
-	 * length. The length of the best route from one key to another will
-	 * always be the taxicab distance between the keys. In addition, the
-	 * shortest route will always consist of some non-negative number of
-	 * column offsets in one direction, and some non-negative number of row
-	 * offsets in one direction, and then an ACT command. In terms of
-	 * route length, the order of these commands doesn't matter (except
-	 * the ACT has to be at the end), but in terms of the command strings
-	 * needed to execute the routes, the best (meaning easiest to input)
-	 * route will be the ones with the fewest arm moves. Consider that inputs
-	 * "<<^A" and "<^<A" have the same route length and achieve the same
-	 * result, but the command string for the second will always be longer,
-	 * because it has to move the arm off the '<' key to the '^' key and back
-	 * to the '<' key, as opposed to the first command which doesn't have to
-	 * move the arm at all between the first '<' and the second '<' press.
-	 * Therefore, there are at most two choices for "friendliest" path
-	 * between two keys: (1) all row offsets followed by all column offsets
-	 * or (2) all column offsets followed by all row offsets. If one of
-	 * those paths crosses the null key, then there is only one choice
-	 * for friendliest path. In either case, the friendliest path can be
-	 * described with some simple metadata: the number of moves needed
-	 * in each direction.
-	 * 
-	 * To decide the better of the two friendliest arrangements, the command
-	 * string length (cost) of the arrangements is the tiebreaker. Each
-	 * keypress comes with some associated cost. If the Robot's arm is
-	 * poised above the desired key, then the cost is only 1 (the ACT
-	 * command). In any other circumstance, there is a cost associated with
-	 * moving the arm from one key to another. Our assumption above, based
-	 * on this principle, is that the fewer key changes there are in the
-	 * input, the better. The next corollary is that we can compare the
-	 * costs of the key changes needed in each arrangement to decide which
-	 * is less costly. In the case of the arrangements we're discussing,
-	 * there are (at most) three key changes to consider: 'A' (always
-	 * the starting point for a command string) to the first offset key,
-	 * the first offset key to the second offset key, and the second
-	 * offset key back to 'A'. (Clearly, if one of the offset counts
-	 * is zero, we can skip the middle key change, but also...that
-	 * being the case, there is only one friendliest arrangement, so...)
-	 * 
-	 * It is worth noting that cost(X,Y) can NOT be assumed equal to
-	 * cost(Y, X) in all cases. In the directional keypad in the puzzle,
-	 * switching from row offset to column offset is the same in both
-	 * directions, which is fine (though likely an optimization I won't
-	 * be taking advantage of), but cost('A', '<') is always greater
-	 * than cost('A', '>'), for example, so just reversing an input's
-	 * directions will result in a different command string length.
-	 *
-	 * A "keypress" is a unit of measurement that applies to both inputs and
-	 * command strings but can mean different things. Each keypress of input
-	 * translates to one keypress of command string, but each keypress of
-	 * input is one character, while each keypress of command string is...
-	 * another command string. There is NOT a one-to-one mapping between a
-	 * given keypress of input and the resulting command string. The command
-	 * string for a particular keypress (and therefore also the associated
-	 * cost) depends on the starting position of the Robot's arm (which is
-	 * always 'A' at the beginning).
-	 * 
-	 * The last big thing to keep in mind is that all command strings derived
-	 * from input keypresses will always terminate with an ACT command.
-	 *
-	 * Example:
-	 * 
-	 * Consider one Robot, the "asker," asks a second Robot, the "answerer,"
-	 * for the friendliest command string metadata for the route from 'X' to
-	 * 'Y'. The answerer determines the metadata of the friendliest path:
-	 * C number of column offsets in H direction, R number of row offsets in
-	 * V direction, and whether either arrangement (column-first or row-first)
-	 * passes over the null key and is disqualified. This information is
-	 * passed back to the asker. The asker can then determine based on the
-	 * metadata which arrangement is less costly command-wise.
-	 * 
-	 * If there is only one valid arrangement based on the answerer's
-	 * metadata, then that's it; we're done here. If there are two choices,
-	 * the asker can determine the better option by comparing the costs.
-	 * First, we can accept that cost(X, X) for any X will be 1 (for the ACT
-	 * at the end and no prior movement). As a result, we only need to compare
-	 * the costs of key changes. For example, consider the metadata 3L2U
-	 * (three left, two up), and assume both arrangements ("LLLUU" and
-	 * "UULLL") are valid inputs. The command strings to compare ("LLLUUA" and
-	 * "UULLLA") can be compared by examining
-	 * 
-	 *     cost(A, L) + cost(L, U) + cost(U, A)
-	 * 
-	 *                      vs.
-	 * 
-	 *     cost(A, U) + cost(U, L) + cost(L, A)
-	 *
-	 * because the rest of the middle costs (whatever they are) will be the
-	 * same between arrangements. (Non-changing costs will either be
-	 * cost(U, U) or cost(L, L), which both evaluate to 1.)
-	 * 
-	 * P.S., mostly to myself. Converting inputs to metadata can probably be
-	 * handled best by the Keypads; the conversion will be the same for
-	 * different Keypads with the same configuration, which also means they
-	 * can be cached (memoized) class-wide. In the above example, that would
-	 * be the answerer querying its worker. The asker still must make the
-	 * choice between same-length arrangements based on the needs of the
-	 * asker's controller. In the puzzle, this will always be a directional
-	 * Keypad, but that's my one concession to generalizing the functionality;
-	 * it's the Robot's role to translate input to their controller to
-	 * commands.
-	 */
+	void setController(Keypad newController) {
+		this.clearController();
+		if (newController != null) {
+			newController.worker = this;
+			this.controller = newController;
+		}
+		return;
+	}
+	
+	// Returns the command string to get the specified input on the head Keypad in the control chain
+	public String getCommandStringForHeadInput(String headInput) {
+		String myInput;
+		if (this.hasWorker() && this.getWorker().hasWorker()) {
+			myInput = this.getWorker().getWorker().getCommandStringForHeadInput(headInput);
+		} else {
+			// I AM HEAD
+			myInput = headInput;
+		}
+		return this.getCommandStringForInput(myInput);
+	}
+	
+	// Returns the command string to get the specified input on this Robot's worker keypad
+	public String getCommandStringForInput(String input) {
+		StringBuilder strb = new StringBuilder();
+		
+		if (input != null && !input.isEmpty()) {
+			char from = 'A'; // Assume always starting from 'A' position
+			char[] chars = input.toCharArray();
+			
+			for (char to : chars) {
+				strb.append(this.getCommandStringForKeypress(from, to));
+				from = to;
+			}
+		}
+		return strb.toString();
+	}
+	
+	public String getCommandStringForKeypress(char from, char to) {
+		if (!this.hasWorker()) {
+			throw new IllegalStateException(String.format("%s is not controlling a keypad", this.name));
+		}
+		
+		StringBuilder strb = new StringBuilder();
+		
+		if (from != to) {
+			Coords metadata = this.worker.getKeypressMetadata(from, to);
+			List<List<Dir>> candidates = new ArrayList<List<Dir>>(); // short-ass list
+			if (metadata.getCol() != 0) {
+				List<Dir> candidate = KeypadRobot.generatePathFromMetadata(metadata, Arrangement.COL_FIRST);
+				if (this.worker.isValidPath(candidate, from, to)) {
+					candidates.add(candidate);
+				}
+			}
+			if (metadata.getRow() != 0) {
+				List<Dir> candidate = KeypadRobot.generatePathFromMetadata(metadata, Arrangement.ROW_FIRST);
+				if (this.worker.isValidPath(candidate, from, to)) {
+					candidates.add(candidate);
+				}
+			}
+			
+			int candidateCount = candidates.size();
+			if (candidateCount > 1) {
+				// Find shortest candidate by sorting by length
+				Collections.sort(candidates, Comparator.comparingInt(List::size));
+			} else if (candidateCount == 0) {
+				throw new RuntimeException(String.format("%s unable to find any valid paths for input keypress '%c' to '%c'",
+						this.name, from, to));
+			} // else only one candidate remains
+			
+			// Build command from best candidate
+			for (Dir d : candidates.get(0)) {
+				strb.append(Command.getCommandByDir(d).c);
+			}
+		}
+		
+		return strb.append(Command.ACT.c).toString(); // All keypresses end with ACT
+	}
 	
 	@Override
 	public String toString() {
@@ -194,6 +285,40 @@ public class KeypadRobot {
 		pw.println("Controlling: " + this.worker.getName());
 		
 		return sw.toString();
+	}
+	
+	private static List<Dir> generatePathFromMetadata(Coords metadata, Arrangement arrangement) {
+		List<Dir> result = new ArrayList<Dir>();
+		int col = metadata.getCol();
+		int row = metadata.getRow();
+		
+		int firstCount, secondCount;
+		Dir firstDir, secondDir;
+		switch (arrangement) {
+		case COL_FIRST:
+			firstCount = Math.abs(col);
+			firstDir = col > 0 ? Dir.E : Dir.W;
+			secondCount = Math.abs(row);
+			secondDir = row > 0 ? Dir.S : Dir.N;
+			break;
+		case ROW_FIRST:
+			firstCount = Math.abs(row);
+			firstDir = row > 0 ? Dir.S : Dir.N;
+			secondCount = Math.abs(col);
+			secondDir = col > 0 ? Dir.E : Dir.W;
+			break;
+		default:
+			throw new RuntimeException("Unsupported arrangement: " + arrangement.name());
+		}
+		
+		for (int i = 1; i <= firstCount; i++) {
+			result.add(firstDir);
+		}
+		for (int i = 1; i <= secondCount; i++) {
+			result.add(secondDir);
+		}
+		
+		return result;
 	}
 	
 	// This is primarily to bridge between existing Dir uses and the new Keypad uses
@@ -227,5 +352,10 @@ public class KeypadRobot {
 				throw new RuntimeException("Unsupported direction: " + d.name());
 			}
 		}
+	}
+	
+	private enum Arrangement {
+		COL_FIRST		(),
+		ROW_FIRST		();
 	}
 }

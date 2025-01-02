@@ -5,10 +5,13 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.robabrazado.aoc2024.grid.Coords;
+import com.robabrazado.aoc2024.grid.Dir;
 
 public class Keypad {
 	private final KeypadType type;
@@ -16,15 +19,14 @@ public class Keypad {
 	private final Set<Key> keys;
 	private final int width;
 	private final int height;
-	private final KeypadRobot worker;
+	
+	KeypadRobot worker = null;
+	KeypadRobot controller = null;
 	
 	private Map<Coords, Key> positionMap = null;
+	private Map<Character, Key> charMap = null;
 	
 	public Keypad(KeypadType type, String name) {
-		this(type, name, (KeypadRobot) null);
-	}
-	
-	public Keypad(KeypadType type, String name, KeypadRobot worker) {
 		this.type = type;
 		
 		if (name == null || name.isEmpty()) {
@@ -62,8 +64,6 @@ public class Keypad {
 		}
 		this.keys = Collections.unmodifiableSet(tempKeys);
 		
-		this.worker = worker;
-		
 		return;
 	}
 	
@@ -75,8 +75,62 @@ public class Keypad {
 		return this.name;
 	}
 	
+	public boolean hasWorker() {
+		return this.worker != null;
+	}
+	
+	// Will return non-null or throw error
 	public KeypadRobot getWorker() {
+		if (!this.hasWorker()) {
+			throw new IllegalStateException(String.format("%s has no worker", this.name));
+		}
 		return this.worker;
+	}
+	
+	public void clearWorker() {
+		if (this.worker != null) {
+			this.worker.controller = null;
+			this.worker = null;
+		}
+		return;
+	}
+	
+	public void setWorker(KeypadRobot newWorker) {
+		this.clearWorker();
+		if (newWorker != null) {
+			newWorker.controller = this;
+			this.worker = newWorker;
+		}
+		return;
+	}
+	
+	public boolean hasController() {
+		return this.controller != null;
+	}
+	
+	// Will return non-null or throw
+	public KeypadRobot getController() {
+		if (!this.hasController()) {
+			throw new IllegalStateException(String.format("%s has no controller", this.name));
+		}
+		return this.controller;
+	}
+	
+	public void clearController() {
+		if (this.controller != null) {
+			this.controller.worker = null;
+			this.controller = null;
+		}
+		return;
+	}
+	
+	public void setController(KeypadRobot newController) {
+		this.clearController();
+		if (newController != null) {
+			newController.worker = this;
+			this.controller = newController;
+		}
+		return;
 	}
 	
 	public char charAt(Coords coords) {
@@ -87,7 +141,7 @@ public class Keypad {
 		if (this.positionMap().containsKey(coords)) {
 			return this.positionMap().get(coords);
 		} else {
-			throw new RuntimeException(String.format("%s is not a valid location on this keypad", coords));
+			throw new RuntimeException(String.format("%s is not a valid location on %s", coords, this.name));
 		}
 	}
 	
@@ -99,11 +153,50 @@ public class Keypad {
 		return this.positionMap;
 	}
 	
+	private Map<Character, Key> charMap() {
+		if (this.charMap == null) {
+			this.charMap = new HashMap<Character, Key>();
+			this.keys.stream().forEach(key -> this.charMap.put(key.c, key));
+		}
+		return this.charMap;
+	}
+	
+	private Coords keyPosition(char c) {
+		if (this.charMap().containsKey(c)) {
+			return this.charMap().get(c).position;
+		} else {
+			throw new RuntimeException(String.format("%s does not have a '%c' key", this.name, c));
+		}
+	}
+	
 	public boolean isInBounds(Coords coords) {
 		int col = coords.getCol();
 		int row = coords.getRow();
 		return col >= 0 && col < this.width &&
 				row >=0 && row < this.height;
+	}
+	
+	// The "metadata," which originally was WAY more complicated, is really just an offset, when you get down to it.
+	public Coords getKeypressMetadata(char from, char to) {
+		return this.keyPosition(from).getOffsetTo(this.keyPosition(to));
+	}
+	
+	/*
+	 * Returns true if specified path:
+	 * (a) leads from "from" to "to" and
+	 * (b) always passes over a key (never out of bounds or over a null key)
+	 */
+	public boolean isValidPath(List<Dir> path, char from, char to) {
+		boolean valid = true;
+		Coords checking = this.charMap().get(from).position;
+		valid = this.charAt(checking) == from; // So far so good
+		Iterator<Dir> it = path.iterator();
+		while (it.hasNext() && valid) { // Check the rest of the steps in path (includes last step)
+			checking = checking.applyOffset(it.next());
+			valid = this.positionMap().containsKey(checking);
+		}
+		valid = valid && (this.charAt(checking) == to);
+		return valid;
 	}
 	
 	@Override
@@ -156,6 +249,4 @@ public class Keypad {
 			return String.format("'%c' key at %s", this.c, this.position.toString());
 		}
 	}
-	
-	private record CharPair(char from, char to) {}
 }
