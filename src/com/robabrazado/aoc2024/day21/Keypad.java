@@ -2,6 +2,8 @@ package com.robabrazado.aoc2024.day21;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,25 +16,26 @@ import com.robabrazado.aoc2024.grid.Coords;
 import com.robabrazado.aoc2024.grid.Dir;
 
 public class Keypad {
+	private static final MetadataArrangement[] ARRANGEMENTS = MetadataArrangement.values();
+	
 	private final KeypadType type;
 	private final String name;
 	private final Set<Key> keys;
 	private final int width;
 	private final int height;
 	
-	KeypadRobot worker = null;
-	KeypadRobot controller = null;
-	
 	private Map<Coords, Key> positionMap = null;
 	private Map<Character, Key> charMap = null;
 	
-	public Keypad(KeypadType type, String name) {
-		this.type = type;
-		
+	private static final Map<KeypadType, Map<CharPair, Collection<List<Dir>>>> pathMap =
+			new HashMap<KeypadType, Map<CharPair, Collection<List<Dir>>>>();
+	
+	public Keypad(String name, KeypadType type) {
 		if (name == null || name.isEmpty()) {
-			throw new RuntimeException("Keypad must have a name. Keypad is an individual.");
+			throw new RuntimeException("Keypad must have a name");
 		}
 		this.name = name;
+		this.type = type;
 		
 		Set<Key> tempKeys = new HashSet<Key>();
 		Set<Character> seenChars = new HashSet<Character>();
@@ -75,62 +78,8 @@ public class Keypad {
 		return this.name;
 	}
 	
-	public boolean hasWorker() {
-		return this.worker != null;
-	}
-	
-	// Will return non-null or throw error
-	public KeypadRobot getWorker() {
-		if (!this.hasWorker()) {
-			throw new IllegalStateException(String.format("%s has no worker", this.name));
-		}
-		return this.worker;
-	}
-	
-	public void clearWorker() {
-		if (this.worker != null) {
-			this.worker.controller = null;
-			this.worker = null;
-		}
-		return;
-	}
-	
-	public void setWorker(KeypadRobot newWorker) {
-		this.clearWorker();
-		if (newWorker != null) {
-			newWorker.controller = this;
-			this.worker = newWorker;
-		}
-		return;
-	}
-	
-	public boolean hasController() {
-		return this.controller != null;
-	}
-	
-	// Will return non-null or throw
-	public KeypadRobot getController() {
-		if (!this.hasController()) {
-			throw new IllegalStateException(String.format("%s has no controller", this.name));
-		}
-		return this.controller;
-	}
-	
-	public void clearController() {
-		if (this.controller != null) {
-			this.controller.worker = null;
-			this.controller = null;
-		}
-		return;
-	}
-	
-	public void setController(KeypadRobot newController) {
-		this.clearController();
-		if (newController != null) {
-			newController.worker = this;
-			this.controller = newController;
-		}
-		return;
+	public boolean hasKeyAt(Coords coords) {
+		return this.positionMap().containsKey(coords);
 	}
 	
 	public char charAt(Coords coords) {
@@ -177,26 +126,99 @@ public class Keypad {
 	}
 	
 	// The "metadata," which originally was WAY more complicated, is really just an offset, when you get down to it.
-	public Coords getKeypressMetadata(char from, char to) {
+	public Coords getKeystrokeMetadata(char from, char to) {
 		return this.keyPosition(from).getOffsetTo(this.keyPosition(to));
 	}
 	
-	/*
-	 * Returns true if specified path:
-	 * (a) leads from "from" to "to" and
-	 * (b) always passes over a key (never out of bounds or over a null key)
-	 */
-	public boolean isValidPath(List<Dir> path, char from, char to) {
-		boolean valid = true;
-		Coords checking = this.charMap().get(from).position;
-		valid = this.charAt(checking) == from; // So far so good
-		Iterator<Dir> it = path.iterator();
-		while (it.hasNext() && valid) { // Check the rest of the steps in path (includes last step)
-			checking = checking.applyOffset(it.next());
-			valid = this.positionMap().containsKey(checking);
+	// Returns the shortest paths that connect the specified keys that do not pass over an empty space
+	// This seems like a good thing to memoize and share between objects
+	public Collection<List<Dir>> getShortestValidPaths(char from, char to) {
+		CharPair pair = new CharPair(from, to);
+		if (!this.pathMap().containsKey(pair)) {
+			List<List<Dir>> paths = new ArrayList<List<Dir>>();
+			
+			// Find the two shortest paths (or one if one offset is 0), and add each valid one to the results
+			Coords metadata = this.getKeystrokeMetadata(from, to);
+			int col = metadata.getCol();
+			int row = metadata.getRow();
+			
+			if (col != 0 || row != 0) {
+				List<Dir> tempPath;
+			
+				if (row != 0) {
+					tempPath = this.generatePath(metadata, MetadataArrangement.COL_FIRST);
+					if (this.isValidPath(from, to, tempPath)) {
+						paths.add(tempPath);
+					}
+				}
+				
+				if (col != 0) {
+					tempPath = this.generatePath(metadata, MetadataArrangement.ROW_FIRST);
+					if (this.isValidPath(from, to, tempPath)) {
+						paths.add(tempPath);
+					}
+				}
+				
+			} else {
+				// No offsets; from and to are same key
+				paths.add(new ArrayList<Dir>());
+			}
+			this.pathMap().put(pair, Collections.unmodifiableList(paths));
 		}
-		valid = valid && (this.charAt(checking) == to);
+		return this.pathMap().get(pair);
+	}
+	
+	private List<Dir> generatePath(Coords metadata, MetadataArrangement arrangement) {
+		List<Dir> path = new ArrayList<Dir>();
+		int col = metadata.getCol();
+		int row = metadata.getRow();
+		int[] counts = new int[2];
+		Dir[] dirs = new Dir[2];
+		
+		int colIdx;
+		switch (arrangement) {
+		case COL_FIRST:
+			colIdx = 0;
+			break;
+		case ROW_FIRST:
+			colIdx = 1;
+			break;
+		default:
+			throw new RuntimeException("Unsupported metadata arrangement: " + arrangement.name());
+		}
+		int rowIdx = colIdx ^ 1;
+		
+		counts[colIdx] = Math.abs(col);
+		counts[rowIdx] = Math.abs(row);
+		dirs[colIdx] = col > 0 ? Dir.E : Dir.W;
+		dirs[rowIdx] = row > 0 ? Dir.S : Dir.N;
+		
+		for (int i = 0; i < 2; i++) {
+			for (int j = 1; j <= counts[i]; j++) {
+				path.add(dirs[i]);
+			}
+		}
+		
+		return path;
+	}
+	
+	private boolean isValidPath(char from, char to, List<Dir> path) {
+		boolean valid = true;
+		
+		Coords checking = this.charMap().get(from).position;
+		Iterator<Dir> it = path.iterator();
+		while (it.hasNext() && valid) {
+			checking = checking.applyOffset(it.next());
+			valid = this.isInBounds(checking) && this.positionMap().containsKey(checking);
+		}
 		return valid;
+	}
+	
+	private Map<CharPair, Collection<List<Dir>>> pathMap() {
+		if (!Keypad.pathMap.containsKey(this.type)) {
+			Keypad.pathMap.put(this.type, new HashMap<CharPair, Collection<List<Dir>>>());
+		}
+		return Keypad.pathMap.get(this.type);
 	}
 	
 	@Override
@@ -204,16 +226,17 @@ public class Keypad {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
 		
-		pw.println("Keypad " + this.name);
+		pw.println(this.name);
 		for (int row = 0; row < this.height; row++) {
 			for (int col = 0; col < this.width; col++) {
-				pw.print(this.charAt(new Coords(col, row)));
+				Coords coords = new Coords(col, row);
+				if (this.positionMap().containsKey(coords)) {
+					pw.print(this.charAt(coords));
+				} else {
+					pw.print(' ');
+				}
 			}
 			pw.println();
-		}
-		
-		if (this.worker != null) {
-			pw.println("Controlling " + this.worker.toString());
 		}
 		return sw.toString();
 	}
