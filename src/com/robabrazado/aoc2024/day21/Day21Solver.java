@@ -12,15 +12,19 @@ import com.robabrazado.aoc2024.grid.Dir;
 
 // --- Day 21: Keypad Conundrum ---
 /*
- * Once more with feeling. This is now my upteenth-plus-one rewrite of this
- * solution. I believe I now know where I've been going wrong. As is now
- * tradition, here's me trying to organize my thoughts before coding. Some of
- * this is based on info from the last iteration; some of this is new. For a
- * more comprehensive view of where my brain was for previous implementations,
- * see comments on the now-defunct KeypadRobot class. For this iteration,
- * I'm keeping with the separate Robot and Keypad concepts, but they no longer
- * share a control chain. Also, in this iteration, many terms are being reused
- * from previous implementations, but have new meanings. Sorry about that.
+ * Now my upteenth-plus-two rewrite, though it's like half a rewrite. My last
+ * failed attempt was pretty deflating, but after some time away from the
+ * code, I came up with an idea of (a) what I was doing wrong, and (b) what I
+ * could try and do differently, so I'm gonna give that a shot by modifying
+ * the current stuff rather than (yet) another complete rewrite. What follows
+ * is mostly the same as the previous attempt as far as base concepts go, but
+ * this time I'm abandoning the "shortcut" cost calculation stuff (which
+ * turned out pointless anyway), and this time around I'm going to just lean
+ * into calculating actual paths and do it generator-style instead of trying
+ * to calculate them all at once. I also intend to smarten up a path object
+ * (and possibly also the metadata, but they might end up being the same
+ * thing) and just generally trying to do less repeated effort and different
+ * stages of execution. Anyway...here's the new deal.
  * 
  * Consider the Keypad. It is essentially a grid-like collection of Keys, and
  * it is responsible for reporting and managing routes between Keys, which
@@ -31,144 +35,109 @@ import com.robabrazado.aoc2024.grid.Dir;
  * 
  * Consider the Robot. A Robot relates to up to two Keypads. Each Robot is
  * required to have a "command Keypad," which, understandably, is the Keypad
- * that relays commands to the Robot (in the fiction; it doesn't do that as
- * an object.) A Robot may optionally have an "operated Keypad," which is the
- * Keypad that their robot arm is pressing keys on. Robots also live in a
- * control chain with each other; a Robot may be a worker, a controller, or
- * both, in relation to another Robot. This functions like a linked list,
- * and the "head" of the list (or chain) is the Robot with no worker; the
- * "tail" is the Robot with no controller. For purposes of the puzzle, the
- * head Robot is operating the keypad on the door. The tail Robot is the one
- * whose keypad is being operated by the player.
+ * that relays commands to the Robot (in the fiction, I mean; it doesn't do
+ * that as an object.) A Robot may optionally have an "operated Keypad,"
+ * which is the Keypad that their robot arm is pressing keys on. Robots also
+ * live in a control chain with each other; a Robot may be a worker, a
+ * controller, or both, in relation to another Robot. This functions like a
+ * linked list. The head of the list is the Robot with no worker; the "tail"
+ * is the Robot with no controller. For purposes of the puzzle, the head Robot
+ * is operating the keypad on the door. The tail Robot is the one whose keypad
+ * is being operated by the player.
  * 
- * The Robot is where the business logic lives, and it has certain contexts
- * for data depending on where it goes and what it does relative to the
- * Robot's position in their control chain. A Robot's "input" is a sequence of
- * characters that represent keys to be pressed on the Robot's operated
- * Keypad. That input's "command string" is the sequence of keys to be pressed
- * on the Robot's command Keypad to produce the input on the operated Keypad.
- * A "keystroke" is one key being pressed on the operated Keypad. It can be
- * though of as context for data and a unit of measurement. One keystroke of
- * input is represented by one character but includes information provided
- * by the previous character in the sequence (practically, sequences are
- * assumed to start with an implied 'A' key for these purposes, because
+ * The Robot is where the business logic lives, and I'll go through some
+ * data contexts relative to a Robot's perspective. A Robot's "input" is a
+ * sequence of keys to be pressed on the Robot's operated Keypad. That input's
+ * "command string" is the sequence of keys to be pressed on the Robot's
+ * command Keypad to produce the input on the operated Keypad. A "keystroke"
+ * is one key being pressed on the operated Keypad. It can be thought of as
+ * context for data and a unit of measurement. One keystroke of input is
+ * represented by one character but includes information provided by the
+ * previous character in the sequence. (For the purposes of command strings,
+ * input sequences are assumed to start with an implied 'A' key, because
  * that's where the Robot's arm always starts). A keystroke of input is
  * represented by the notation keystroke(from, to), where "from" is the key
  * over which the Robot's arm is initially positioned and "to" is the key to
  * which the Robot's arm must navigate and subsequently press. One keystroke
  * of command string is the sequence of commands that produces one keystroke
- * of input. It is one or more commands that moves the robot's arm to the
- * correct position and directs it to press the key.
+ * of input. It consists of zero or more commands that move Robot's arm to
+ * the correct position followed by one command that directs them to press
+ * the key.
  * 
  * For example, consider a Robot controlled by a directional keypad and
  * operating a numeric keypad. For the input "012A," the first keystroke of
  * input is represented by the "0" and is the keystroke('A', '0'). The first
  * keystroke of that input's command string is "<A" and represents the
- * command sequence LEFT, ACT, which directs the Robot's arm, starting from
- * the 'A' key, to navigate to the '0' key and press it.
+ * command sequence LEFT, ACT, which directs Robot's arm, starting from the
+ * 'A' key, to navigate to the '0' key and press it.
+ * 
+ * [Here is where I deleted everything about "cost." I'm not trucking with
+ * that stuff anymore.]
  *  
- * Every keystroke has a "cost," which is the length of the command string
- * necessary to be given to a Robot to produce a given input. The cost is
- * equal to the keystroke's command string length. The "tail cost" is the
- * length of the command string needed for the tail Robot in the control
- * chain. In the example above, for the input "012A," the first keystroke,
- * keystroke('A', '0'), has a command string of length 2 ("<A"). It also
- * has a tail cost of 2...if the Robot has no controller! If the Robot has a
- * controller (i.e. is itself a worker), that Robot's command string ("<A")
- * becomes the input for their controller (whose operated Keypad is the
- * Robot's command Keypad), and so the controller Robot examines input "<A"
- * and finds the first keystroke('A', '<') evaluates to the command string
- * "v<<A" which has a length of 4. The second keystroke of the input "<A"
- * is keystroke('<', 'A') which (predictably) also has length 4, because it's
- * just retracing the first keystroke's path. So from the first Robot's
- * perspective (the worker Robot's perspective), the command string length of
- * input keystroke('A', '0') is 2, cost('A', '0') is 2, but tailCost('A', '0')
- * is 8.
+ * All "shortest" paths from key to key on a Keypad have the same length (and
+ * therefore the same command string lengths), the taxicab distance between
+ * keys. The collection of these routes can be described with the "metadata"
+ * of the route: the number of column offsets in one direction and the number
+ * of row offsets in another direction. (It turns out that this information is
+ * neatly held by the Coords object.) A path can be represented by a sequence
+ * of Dir objects. Notably, a path is only navigational information; a
+ * keystroke includes both the translation of a path from Dir to Command plus
+ * and additional ACT command.
  * 
- * All "shortest" Keypad routes have the same length (and therefore the same
- * command string lengths), the taxicab distance between keys. The collection
- * of these routes can be described with only the "metadata" of the route:
- * the number of column offsets in one direction and the number of row offsets
- * in another direction. (This is neatly held by the Coords object.) All
- * command strings that fit the criteria outlined by the metadata are the
- * shortest command strings that produce the desired input. However, not all
- * these command strings will have equal cost. It is more costly to move
- * the robot's arm between keys than to not, so the least costly command
- * strings will be the ones with the fewest changes between keys. For any
- * given input keystroke, the least costly command string should be the
- * one with the fewest changes in key position, because cost(X, X) is always
- * 1 while cost(X, Y) is always greater than 1 where X != Y. In the first
- * case, the Robot only requires the ACT command, while in the second case,
- * the robot requires arm-positioning commands followed by the ACT command.
- * Therefore, there should generally be a two-way tie for least costly command
- * string for a given input keystroke, and it should be between "all column
- * offsets followed by all row offsets" or "all row offsets followed by all
- * column offsets." While the Robot is unable to execute a path that crosses
- * an empty space on the Keypad, it shouldn't matter, because the puzzle
- * Keypad all have the empty spaces in the corner, so in taxicab navigation,
- * if one route crosses the empty space, there is another route that doesn't.
- * Put another way, the empty space is never an obstacle to BOTH lowest-cost
- * paths. The two lowest cost options in the space of metadata-defined command
- * strings are referred to as the "friendliest" options.
+ * A specific path can be identified by (or generated from!) a unit of
+ * keystroke metadata, a Keypad (or strictly speaking a Keypad.KeypadType),
+ * and an ID number (though the ID number will not make a terrific amount of
+ * human sense, as we're about to see). The ID number represents a series of
+ * bits, and the bits represent either a row or column offset direction, so
+ * while we know that any path can be represented by a bit series with length
+ * equal to the path length, we also know that rarely will ALL possible bit
+ * combinations fulfill the metadata criteria. The minimum ID number will
+ * always be 0. The maximum ID number will be, in binary, a length(path) number
+ * of 1 bits. In decimal terms, the maximum ID number will be
+ * (2 ^ length(path)) - 1, but also probably not all ID numbers in that
+ * range will be valid (the exception being when there are only offsets in one
+ * direction).
  * 
- * The cost of either friendliest option can be calculated without generating
- * the full command string. There are at most three key changes in any given
- * friendliest option where A represents the 'A' key, C represents the column
- * change key ('<' or '>'), and R represents the row change key ('^' or 'v').
- * The costs will either be
+ * For example, consider a numeric keypad and the path metadata 1W2N (one
+ * column offset west/left and two row offsets north/up). Specific paths can
+ * be identified with three bits of data, so the valid ID numbers will be
+ * between 0 and 7 (or 000 and 111), but out of the 8 slots in that space,
+ * only 3 are valid ID numbers, the three binary numbers with two 1 bits,
+ * 3, 5, and 6 (or 011, 101, and 110).
  * 
- *     cost(A, C) + cost(C, R) + cost(R, A)
- *     
- * for the "column-first arrangement" or
+ * Because of this confusion, it's my intention to not expose the ID number
+ * part of all this through the interface. But if I did! I'd probably
+ * translate the ID numbers to something more human-friendly like an index.
+ * One could generate an ordered list of valid ID numbers and then index that
+ * list sequentially to come up with a human-friendly number to identify
+ * paths. But I'm hoping that's not going to be necessary. I know this is
+ * already confusing enough, but what can I say...this got me on a bitmasking
+ * kick.
  * 
- *     cost(A, R) + cost(R, C) + cost(C, A)
- *     
- * for the "row-first arrangement." There are only two key changes in the
- * cases where the are either no column offsets or no row offsets. There
- * are no key changes when there are no offsets, because that's just the
- * same key. The cost of the rest of the friendliest option is just the
- * sum of the number of column offsets minus one and the number of row
- * offsets minus one.
+ * As mentioned earlier, the head Robot, the one with no worker, is operating
+ * the door keypad, which is where our puzzle input ends up. This introduces
+ * the concept of "head input," which is input that goes to the door keypad
+ * (via the head Robot). Any Robot's input can be translated to a command
+ * string, and any Robot's command string can be treated as input for that
+ * Robot's controller. Put another way, any Robot can be asked for a command
+ * string to generate head input. If the asked Robot is the head Robot, they
+ * need only return their command string for the specified input. If the asked
+ * Robot is not the head Robot (meaning it has a worker), they can ask their
+ * worker for the worker's command string for the specified head input and
+ * then return their command string using the worker's command string as the
+ * asked Robot's input.
  * 
- * For example, consider the command string "CCCRRA" (represented by the
- * metadata 3C2R, or three column offsets in direction C and 2 row offsets in
- * direction R) in the column-first arrangement. We can first compute the
- * cost by examining the key changes:
- * 
- *     cost(A, C) + cost(C, R) + cost(R, A)
- *     
- * The first cost represents the first C keystroke, the second cost represents
- * the first R keystroke (coming from C), and the third cost represents the
- * terminal A keystroke (coming from R). The remaining keystrokes are all
- * repetitions of either the column or row offset keys. The command string
- * with _ indicating keystrokes that have already had their costs computed is
- * "_CC_R_" for two C key repetitions (each costing 1 for a total cost of 2)
- * and one R key repetition (cost 1), for a total additional cost of 3. So,
- * the cost of "CCCRRA" is cost(A, C) + cost(C, R) + cost(R, A) + 3.
- * 
- * Similarly to the tail Robot being significant because they are the ultimate
- * source of input cost, the head Robot is significant because they are
- * operating the door keypad, which is where the puzzle input ends up. In
- * addition to any Robot being able to need to find their tail Robot to
- * determine input cost, any Robot must also be able to find the head Robot
- * to specify head input. For this reason, the control chain is a double-
- * linked list.
- * 
- * Remember that any given Robot's command string is input for their
- * controller Robot, and cost(input) is just cost(A, input[0]) +
- * cost(input[0], input[1]) and so on. Additionally, cost is controller
- * command string length (if a controller is present), so cost(X, Y) is
- * length(controller.commandFor(X, Y). Conversely, cost(X, Y) without a
- * controller present is just length(commandFor(X, Y)).
- * 
- * To pull this all together, start with a Robot's input, which is a sequence
- * of keystrokes. The Keypad can translate input(A, B) to metadata(A, B)
- * which is some form of XCYR (where X and Y are non-negative integers, and C
- * and R are directions). This can represent a number of valid command strings
- * (that number is 2 ^ (X + Y)), but the two friendliest options are
- * (1) X repetitions of C followed by Y repetitions of R followed by A or
- * (2) Y repetitions of R followed by X repetitions of C followed by A. The
- * less costly of those two options is the best command for the input.
+ * However, there will be MANY valid command strings as the input/command
+ * translation continues along the control chain. (I think this is the part
+ * where I was getting into trouble in the past.) So instead of generating
+ * all possible command strings and passing them up the chain to generate
+ * even more possible command strings, my intention now is to pass only
+ * metadata (and KeypadType, though I guess it'll always be the same) along
+ * the chain, and only the asked Robot needs to generate command strings. I
+ * intend to be able to do this with a generator, and that way I don't need
+ * to hold all possible command strings in memory. In this model, for puzzle
+ * purposes, the asked Robot is going to end up being the tail Robot in the
+ * chain.
  */
 public class Day21Solver extends Solver {
 	
