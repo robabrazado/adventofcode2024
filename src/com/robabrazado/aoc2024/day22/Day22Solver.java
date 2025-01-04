@@ -1,7 +1,5 @@
 package com.robabrazado.aoc2024.day22;
 
-import java.math.BigInteger;
-import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.robabrazado.aoc2024.Solver;
@@ -16,18 +14,10 @@ public class Day22Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
-		BigInteger result = BigInteger.ZERO;
+		Marketplace marketplace = new Marketplace(puzzleInput);
+		System.out.println(marketplace);
 		
-		Iterator<String> it = puzzleInput.iterator();
-		while (it.hasNext()) {
-			SecretNumber sn = new SecretNumber(it.next());
-			for (int i = 1; i <= 2000; i++) {
-				sn.next();
-			}
-			result = result.add(sn.getValue());
-		}
-		
-		return result.toString();
+		return String.valueOf(marketplace.sumAfter2000());
 	}
 	
 }
