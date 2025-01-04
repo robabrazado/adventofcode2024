@@ -243,6 +243,14 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 I wasn't even going to start a new puzzle today, but the description for part 1 seemed so straightforward that I assumed either part 2 would be way complicated, or else I was fooling myself and part 1 would take forever with a naive implementation. I rolled the dice, though, and got part 1 relatively quickly. Then, of course, part 2 is *way* more complicated, so I'm not going to try that tonight. Until next time, monkeys!
 
+[Day 35] After banging my head against Day 21 for...quite some time, I decided to take a break and work on a different puzzle. In looking at Day 22 again, I realized a totally different way I could have done part 1 (more in spoilers), so I think I may just rewrite that for the exercise of it, and to get my head back in the Day 22 space. I've read part 2 and think I know the approach I want to take, and thankfully I don't think it matters what the implementation of part 1 is, so...it'll be fine. However! I'm also thinking of restructuring the model to (a) fit in better with Java idioms and (b) be more of a...mmm...puzzle-specfic solution, rather than something theoretically more general-use. I don't think there's a technical reason for this, really, but it'll help me get in a better headspace. I think a lot of why I keep getting off track in Day 21 is because I'm trying to do things for general use rather than just trying to solve a specific problem.
+
+**Spoilers for Day 22 part 1**
+
+In my first run at part 1 (which was successful), I pretty much just implemented the problem as described in the puzzle using math methods. It occurred to me as I was pondering part 2 (on day 35), that it might be cool to do it only with bitwise operations.
+
+**End spoilers**
+
 ## Day 23: LAN Party
 
 I thought I could dash off part 1 real quick over lunch...but it turned out I misunderstood the assignment. Just as well...what I wrote was very quick and very ugly, and it didn't work, to boot. I'm not even committing it. I'll just be coming back to this one later when I have some time, but I'll have to start over.
