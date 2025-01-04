@@ -21,8 +21,6 @@ import com.robabrazado.aoc2024.grid.Dir;
  * If a Robot is assigned a worker, that worker's command keypad becomes this Robot's operated keypad.
  */
 public class Robot {
-	private static final MetadataArrangement[] ARRANGEMENTS = MetadataArrangement.values();
-	
 	private final String name;
 	private final Keypad commandKeypad;
 	private final Robot worker;
@@ -73,112 +71,36 @@ public class Robot {
 		return this.name;
 	}
 	
-	// Always non-null; if this is null, constructors didn't enforce or something else codewise is wrong
-	private Keypad operatedKeypad() {
-		Keypad result = this.nonWorkerOperatedKeypad;
+	public CommandGenerator getCommandGeneratorForHeadInput(String headInput) {
 		if (this.worker != null) {
-			result = worker.commandKeypad;
-		}
-		if (result != null) {
-			return result;
+			List<PathGenerator> pathGens = new ArrayList<PathGenerator>();
+			Iterator<String> myInputIt = this.worker.getCommandGeneratorForHeadInput(headInput).commandIterator();
+			while (myInputIt.hasNext()) {
+				pathGens.addAll(this.getCommandGeneratorForInput(myInputIt.next()).getPathGenerators());
+			}
+			return new CommandGenerator(pathGens);
 		} else {
-			throw new IllegalStateException(this.name + " is not operating a keypad");
+			// I AM HEAD
+			return this.getCommandGeneratorForInput(headInput);
 		}
 	}
 	
-	public int getBestCommandLengthForHeadInput(String headInput) {
-		return getBestCommandForHeadInput(headInput).length();
-	}
-	
-	public String getBestCommandForHeadInput(String headInput) {
-		StringBuilder strb = new StringBuilder();
+	public CommandGenerator getCommandGeneratorForInput(String input) {
+		List<PathGenerator> pathGenerators = new ArrayList<PathGenerator>();
 		
-		if (headInput != null && !headInput.isEmpty()) {
-			char from = 'A'; // Always assume starting from the 'A' key position
-			char[] chars = headInput.toCharArray();
-			for (char to : chars) {
-				strb.append(this.getBestCommandForHeadInput(from, to));
+		if (input != null && !input.isEmpty()) {
+			char from = 'A';
+			for (char to : input.toCharArray()) {
+				pathGenerators.add(this.operatedKeypad().getKeystrokePathGenerator(from, to));
 				from = to;
 			}
 		}
-		return strb.toString();
+		return new CommandGenerator(pathGenerators);
 	}
 	
-	private String getBestCommandForHeadInput(char from, char to) {
-		String result;
-		if (worker != null) {
-			StringBuilder strb = new StringBuilder();
-			String myInput = this.worker.getBestCommandForHeadInput(from, to);
-			char f = 'A';
-			char[] chars = myInput.toCharArray();
-			for (char t : chars) {
-				strb.append(this.getBestCommandForInput(f, t));
-				f = t;
-			}
-			result = strb.toString();
-		} else {
-			// I AM HEAD
-			result = getBestCommandForInput(from, to);
-		}
-		return result;
-	}
-	
-	private String getBestCommandForInput(char from, char to) {
-		Set<String> commands = this.getBestCommandsForInput(from, to);
-		if (commands.isEmpty()) {
-			throw new RuntimeException(String.format("%s could not find a best path from '%c' to '%c'", this.name, from, to));
-		}
+	public String getBestCommandForHeadInput(String headInput) {
 		
-		if (commands.size() > 1 && this.controller != null) {
-			// Use controller to break tie (three costs theory)
-			
-			// THIS IS SO DIRTY
-			
-			Map<String, Integer> costMap = new HashMap<String, Integer>();
-			for (String command : commands) {
-				char f = 'A';
-				int cost = 0;
-				String bar = "";
-				for (char t : command.toCharArray()) {
-					if (f != t) {
-						String baz = this.controller.getBestCommandForInput(f, t);
-						bar += baz + "/";
-						cost += baz.length();
-						f = t;
-					}
-				}
-//				System.out.println(command + " -> " + bar + " (" + String.valueOf(cost) + ")");
-				costMap.put(command, cost);
-			}
-			
-			// ...and it does nothing. As suspected, controller costs are the same between both options
-			
-			return commands.iterator().next(); // TODO
-		} else {
-			// Arbitrarily choosing; they should be equal length
-			return commands.iterator().next();
-		}
-	}
-	
-	// Return commands with the fewest direction changes that still represent a valid path
-	private Set<String> getBestCommandsForInput(char from, char to) {
-		Set<String> result = new HashSet<String>();
-		Collection<List<Dir>> paths = this.operatedKeypad().getShortestValidPaths(from, to);
-		if (!paths.isEmpty()) {
-			Iterator<List<Dir>> it = paths.iterator();
-			while (it.hasNext()) {
-				List<Dir> path = it.next();
-				StringBuilder strb = new StringBuilder();
-				for (Dir d : path) {
-					strb.append(Command.getCommandByDir(d).c);
-				}
-				strb.append(Command.ACT.c);
-				result.add(strb.toString());
-			}
-		} else {
-			throw new RuntimeException(String.format("%s's operated keypad did not return any valid paths from '%c' to '%c'", this.name, from, to));
-		}
-		return result;
+		throw new RuntimeException("Not yet implemented"); // TODO
 	}
 	
 	@Override
@@ -205,5 +127,19 @@ public class Robot {
 		pw.println();
 		
 		return sw.toString();
+	}
+	
+	// Either the worker keypad or the nonworker keypad, as appropriate
+	private Keypad operatedKeypad() {
+		Keypad result = this.nonWorkerOperatedKeypad;
+		if (this.worker != null) {
+			result = worker.commandKeypad;
+		}
+		if (result != null) {
+			return result;
+		} else {
+			// This is considered a throwable error state; constructors didn't enforce or something else codewise is wrong
+			throw new IllegalStateException("Internal error: " + this.name + " is not operating a keypad");
+		}
 	}
 }

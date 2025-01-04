@@ -237,6 +237,8 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 [Day 34] After some contemplation last night, I realized that my current implementation isn't even fulfilling the contract I set out for myself, but I also realized I'm basically going down the same road as the first implementation, so that's probably not going to get me anywhere. So I'm going to take _one more shot_ at trying out the current plan. For a fresh take and also as a technical exercise, I'm going to make a significant change in architecture (with more commentary on that in the code), but the overall shape of the algorithm will be the same, I think. Either way, I'm just taking some notes now to remind myself where I'm at. I don't think I'll necessarily have a chance to do any coding until much later today.
 
+[Much later that day] That was a bust. I mean, I had a great time playing with stuff...made my own command-generating Iterator and all kindsa fun stuff. But in the end, it's not getting any better results, and it is way WAY more complicated. I think I'm just not approaching this correctly at all. I may try and take a break from this puzzle and try for some other starts I haven't gotten yet. But I think I need a whole new approach here.
+
 ## Day 22: Monkey Market
 
 I wasn't even going to start a new puzzle today, but the description for part 1 seemed so straightforward that I assumed either part 2 would be way complicated, or else I was fooling myself and part 1 would take forever with a naive implementation. I rolled the dice, though, and got part 1 relatively quickly. Then, of course, part 2 is *way* more complicated, so I'm not going to try that tonight. Until next time, monkeys!

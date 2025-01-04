@@ -1,7 +1,11 @@
 package com.robabrazado.aoc2024.day21;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -43,7 +47,8 @@ import com.robabrazado.aoc2024.grid.Dir;
  * linked list. The head of the list is the Robot with no worker; the "tail"
  * is the Robot with no controller. For purposes of the puzzle, the head Robot
  * is operating the keypad on the door. The tail Robot is the one whose keypad
- * is being operated by the player.
+ * is being operated by the player. Any controller Robot automatically has
+ * their worker's command keypad set to the controller's operated keypad.
  * 
  * The Robot is where the business logic lives, and I'll go through some
  * data contexts relative to a Robot's perspective. A Robot's "input" is a
@@ -64,12 +69,16 @@ import com.robabrazado.aoc2024.grid.Dir;
  * the correct position followed by one command that directs them to press
  * the key.
  * 
- * For example, consider a Robot controlled by a directional keypad and
+ * For example, consider a Robot accepting commands via directional keypad and
  * operating a numeric keypad. For the input "012A," the first keystroke of
  * input is represented by the "0" and is the keystroke('A', '0'). The first
  * keystroke of that input's command string is "<A" and represents the
  * command sequence LEFT, ACT, which directs Robot's arm, starting from the
- * 'A' key, to navigate to the '0' key and press it.
+ * 'A' key, to navigate to the '0' key and press it. The second keystroke
+ * would be keystroke('0', '1') with a command string "^<A" navigating the
+ * Robot arm UP, LEFT, ACT to move from the '0' key to the '1' key and
+ * pressing it. And so on. The input "012A" is thereby translated to the
+ * command string "<A^<A>A>>vA" (the concatenation of all input keystrokes.)
  * 
  * [Here is where I deleted everything about "cost." I'm not trucking with
  * that stuff anymore.]
@@ -86,33 +95,40 @@ import com.robabrazado.aoc2024.grid.Dir;
  * 
  * A specific path can be identified by (or generated from!) a unit of
  * keystroke metadata, a Keypad (or strictly speaking a Keypad.KeypadType),
- * and an ID number (though the ID number will not make a terrific amount of
- * human sense, as we're about to see). The ID number represents a series of
- * bits, and the bits represent either a row or column offset direction, so
- * while we know that any path can be represented by a bit series with length
- * equal to the path length, we also know that rarely will ALL possible bit
- * combinations fulfill the metadata criteria. The minimum ID number will
- * always be 0. The maximum ID number will be, in binary, a length(path) number
- * of 1 bits. In decimal terms, the maximum ID number will be
- * (2 ^ length(path)) - 1, but also probably not all ID numbers in that
- * range will be valid (the exception being when there are only offsets in one
- * direction).
+ * an (mostly internal) bitmap. Each bit in the bitmap represents either a row
+ * or column offset direction, so while we know that any path can be
+ * represented by a bit series with length equal to the path length, we also
+ * know that rarely will ALL possible bit combinations in that space fulfill
+ * the metadata criteria. The "bitmap number" is the number represented by
+ * the binary number spelled out by the bitmap. The minimum bitmap number
+ * will always be 0. The maximum bitmap number will be, in binary, a
+ * length(path) number of 1 bits. In decimal terms, the maximum bit number
+ * will be (2 ^ length(path)) - 1, but as said, probably not all bitmap
+ * numbers in that range will be valid (the exception being when there are
+ * only offsets in one direction, i.e. only column or only row offsets).
  * 
- * For example, consider a numeric keypad and the path metadata 1W2N (one
+ * Example: consider a numeric keypad and the path metadata 1W2N (one
  * column offset west/left and two row offsets north/up). Specific paths can
  * be identified with three bits of data, so the valid ID numbers will be
  * between 0 and 7 (or 000 and 111), but out of the 8 slots in that space,
  * only 3 are valid ID numbers, the three binary numbers with two 1 bits,
  * 3, 5, and 6 (or 011, 101, and 110).
  * 
- * Because of this confusion, it's my intention to not expose the ID number
- * part of all this through the interface. But if I did! I'd probably
- * translate the ID numbers to something more human-friendly like an index.
- * One could generate an ordered list of valid ID numbers and then index that
- * list sequentially to come up with a human-friendly number to identify
- * paths. But I'm hoping that's not going to be necessary. I know this is
- * already confusing enough, but what can I say...this got me on a bitmasking
- * kick.
+ * For completeness, a zero count in both offsets means a path from a key
+ * to itself, i.e. also an empty path.
+ * 
+ * Because of the confusing nature of the bitmap, it's not my intention to
+ * expose the bitmap number outside the context of the path generator. Its
+ * public face will instead be a "path index." The path index is the ordinal
+ * number (in a 0-indexed array) of a sorted list of all valid bitmap numbers;
+ * the lowest path index will be 0, and the highest will be
+ * length(bitmapList) - 1. In the example above, the 1W2N metadata on a
+ * numeric keypad would have 3 path indices in the range 0-2. Path index 0
+ * would correspond to bitmap 011, index 1 to bitmap 101, and index 2 to
+ * bitmap 110. I don't think this path index will be tremendously useful
+ * or informative, but it will be easier for consumers to deal with than
+ * the bitmaps as far as identifying particular paths, and will surely make
+ * it easier for generators (see below) to maintain state.
  * 
  * As mentioned earlier, the head Robot, the one with no worker, is operating
  * the door keypad, which is where our puzzle input ends up. This introduces
@@ -122,22 +138,21 @@ import com.robabrazado.aoc2024.grid.Dir;
  * Robot's controller. Put another way, any Robot can be asked for a command
  * string to generate head input. If the asked Robot is the head Robot, they
  * need only return their command string for the specified input. If the asked
- * Robot is not the head Robot (meaning it has a worker), they can ask their
+ * Robot is not the head Robot, meaning they have a worker, they can ask their
  * worker for the worker's command string for the specified head input and
- * then return their command string using the worker's command string as the
- * asked Robot's input.
+ * then return the asked Robot's command string using the worker's command
+ * string as the asked Robot's input.
  * 
- * However, there will be MANY valid command strings as the input/command
- * translation continues along the control chain. (I think this is the part
- * where I was getting into trouble in the past.) So instead of generating
- * all possible command strings and passing them up the chain to generate
- * even more possible command strings, my intention now is to pass only
- * metadata (and KeypadType, though I guess it'll always be the same) along
- * the chain, and only the asked Robot needs to generate command strings. I
- * intend to be able to do this with a generator, and that way I don't need
- * to hold all possible command strings in memory. In this model, for puzzle
- * purposes, the asked Robot is going to end up being the tail Robot in the
- * chain.
+ * There will be MANY valid command strings as the input/command translation
+ * continues along the control chain. (I think this is the part where I was
+ * getting into trouble in the past.) So instead of generating all possible
+ * command strings and passing them up the chain to generate even more
+ * possible command strings, my intention now is to pass only metadata (and
+ * KeypadType, though I guess it'll always be the same) along the chain, and
+ * only the asked Robot needs to generate command strings. I intend to be able
+ * to do this with a generator, and that way I don't need to hold all possible
+ * command strings in memory. In this model, for puzzle purposes, the asked
+ * Robot is going to end up being the tail Robot in the chain.
  */
 public class Day21Solver extends Solver {
 	
@@ -155,13 +170,29 @@ public class Day21Solver extends Solver {
 		Robot radiationRobot = new Robot("Radiation Robot", depressurizedRobot);
 		Robot frozenRobot = new Robot("Frozen Robot", radiationRobot);
 		
-//		System.out.println(doorKeypad);
-//		System.out.println(depressurizedRobot);
-//		System.out.println(radiationRobot);
-//		System.out.println(frozenRobot);
+		System.out.println(doorKeypad);
+		System.out.println(depressurizedRobot);
+		System.out.println(radiationRobot);
+		System.out.println(frozenRobot);
 		
-		Robot myRobot = frozenRobot; // for convenience
-//		Robot myRobot = depressurizedRobot; // for testing
+//		Robot myRobot = frozenRobot; // for convenience
+		Robot myRobot = radiationRobot; // for testing
+		
+		CommandGenerator testgen = myRobot.getCommandGeneratorForHeadInput("029A");
+		Iterator<String> commandIt = testgen.commandIterator();
+		Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
+		while (commandIt.hasNext()) {
+			int count = commandIt.next().length();
+			if (!counts.containsKey(count)) {
+				counts.put(count, 0);
+			}
+			counts.put(count, counts.get(count) + 1);
+		}
+		Set<Integer> countKeys = new TreeSet<Integer>(counts.keySet());
+		for (Integer count : countKeys) {
+			System.out.println(String.format("%d: %d", count, counts.get(count)));
+		}
+		
 		
 		Iterator<String> it = puzzleInput.iterator();
 		Pattern inputP = Pattern.compile("^(\\d+)A$");
