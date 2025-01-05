@@ -247,6 +247,8 @@ I wasn't even going to start a new puzzle today, but the description for part 1 
 
 [Later] Part 1 rewrite worked out well! On to part 2.
 
+[Later] The theory was sound for how to approach part 2, but I was tripping myself with what turned out to be an implementation bug, which was a bummer because I didn't have a good way to debug it. Like...it was just a whole lot of data to sift through, so I wasn't sure how to narrow down where the problem was. Anyway...got there eventually! Not without one round of "Oh, *that's* why it's so slow," but the slowness was just my own naivete and not related to the bug I had coded. In any case. It's fine now. Onward!
+
 **Spoilers for Day 22 part 1**
 
 In my first run at part 1 (which was successful), I pretty much just implemented the problem as described in the puzzle using math methods. It occurred to me as I was pondering part 2 (on day 35), that it might be cool to do it only with bitwise operations.

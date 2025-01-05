@@ -14,10 +14,15 @@ public class Day22Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
+		int numSteps = 2000;
 		Marketplace marketplace = new Marketplace(puzzleInput);
 		System.out.println(marketplace);
 		
-		return String.valueOf(marketplace.sumAfter2000());
+		if (partOne) {
+			return String.valueOf(marketplace.sumAfter(numSteps));
+		} else {
+			return String.valueOf(marketplace.maxBananaCountAfter(numSteps));
+		}
 	}
 	
 }

@@ -14,6 +14,10 @@ public class SecretNumberGenerator {
 		return;
 	}
 	
+	public long getFirstValue() {
+		return this.first;
+	}
+	
 	public long getCurrentValue() {
 		return this.current;
 	}
@@ -33,7 +37,7 @@ public class SecretNumberGenerator {
 	}
 	
 	// Advances current value specified number of steps and returns it
-	public long next(long num) {
+	public long next(int num) {
 		if (num < 0) {
 			throw new IllegalArgumentException("Cannot advance negative steps");
 		}
