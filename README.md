@@ -247,7 +247,7 @@ I wasn't even going to start a new puzzle today, but the description for part 1 
 
 [Later] Part 1 rewrite worked out well! On to part 2.
 
-[Later] The theory was sound for how to approach part 2, but I was tripping myself with what turned out to be an implementation bug, which was a bummer because I didn't have a good way to debug it. Like...it was just a whole lot of data to sift through, so I wasn't sure how to narrow down where the problem was. Anyway...got there eventually! Not without one round of "Oh, *that's* why it's so slow," but the slowness was just my own naivete and not related to the bug I had coded. In any case. It's fine now. Onward!
+[Later] The theory was sound for how to approach part 2, but I was tripping myself with what turned out to be an implementation bug, which was a bummer because I didn't have a good way to debug it. Like...it was just a whole lot of data to sift through, so I wasn't sure how to narrow down where the problem was. Anyway...got there eventually! Not without one round of "Oh, *that's* why it's so slow," but the slowness was just my own naivete and not related to the bug I had coded. In any case. It's fine now. Onward! The decision at this point is whether to try to finish part 2 of 24 or to go back to banging my head against 21. Either way, I think I'm done for today.
 
 **Spoilers for Day 22 part 1**
 
@@ -266,6 +266,8 @@ I thought I could dash off part 1 real quick over lunch...but it turned out I mi
 ## Day 24: Crossed Wires
 
 I had a pretty good time implementing part 1, due in no small part to thinking I was doing something "clever." Now having done part 1 and seen the ask for part 2, I think it's likely I'll have to throw away everything I did for part 1. I'm not going to try it out now, though; it's late and I have to sleep. I'll think on it, though...I'll try to use this extra mulling time to see if I an approach part 2 with the architecture I set up for part 1...or if I'll just have to start the whole thing over.
+
+[Day 35] Yep. I'm looking at this puzzle again, and I think I should just start the thing over. My part 1 is so unhelpful for part 2 that I'd have to to write part 2 from scratch anyway, so I might as well redo part 1. Do I'm doing a checkpoint commit so I can find it later if I want to, but I'm not going to be doing any coding for this today.
 
 **Day 24 part 1 spoilers**
 
