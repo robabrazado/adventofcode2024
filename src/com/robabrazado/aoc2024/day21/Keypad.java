@@ -2,28 +2,38 @@ package com.robabrazado.aoc2024.day21;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.robabrazado.aoc2024.grid.Coords;
+import com.robabrazado.aoc2024.grid.Dir;
 
 public class Keypad {
-	private static final Map<KeypadType, Map<CharPair, PathGenerator>> PATH_GENERATOR_MAPS =
-			new HashMap<KeypadType, Map<CharPair, PathGenerator>>();
+	private static final Map<KeypadType, Map<CharPair, String>> COMMAND_MAPS =
+			new HashMap<KeypadType, Map<CharPair, String>>();
 	
 	private final KeypadType type;
 	private final String name;
 	private final Set<Key> keys;
 	private final int width;
 	private final int height;
+	private final Keypad controller;
+	private Keypad worker;
 	
 	private Map<Coords, Key> positionMap = null;
 	private Map<Character, Key> charMap = null;
 	
 	public Keypad(String name, KeypadType type) {
+		this(name, type, (Keypad) null);
+		
+	}
+	
+	public Keypad(String name, KeypadType type, Keypad controller) {
 		if (name == null || name.isEmpty()) {
 			throw new RuntimeException("Keypad must have a name");
 		}
@@ -59,7 +69,10 @@ public class Keypad {
 			throw new RuntimeException("Grid has no height");
 		}
 		this.keys = Collections.unmodifiableSet(tempKeys);
-		
+		if (controller != null) {
+			controller.worker = this;
+		}
+		this.controller = controller;
 		return;
 	}
 	
@@ -69,6 +82,22 @@ public class Keypad {
 	
 	public String getName() {
 		return this.name;
+	}
+	
+	public boolean hasController() {
+		return this.controller != null;
+	}
+	
+	public Keypad getController() {
+		return this.controller;
+	}
+	
+	public boolean hasWorker() {
+		return this.worker != null;
+	}
+	
+	public Keypad getWorker() {
+		return this.worker;
 	}
 	
 	public Map<Coords, Key> getPositionMap() {
@@ -86,24 +115,141 @@ public class Keypad {
 				row >=0 && row < this.height;
 	}
 	
-	public PathMetadata getKeystrokeMetadata(char from, char to) {
-		return new PathMetadata(from, to, this.keyPosition(from).getOffsetTo(this.keyPosition(to)));
+	public int getTailCostForKeypresses(String code) {
+		int result = 0;
+		
+		if (code != null) {
+			char from = 'A';
+			char[] chars = code.toCharArray();
+			for (char to : chars) {
+				result += this.getTailCostForKeystroke(from, to);
+				from = to;
+			}
+		}
+		
+		return result;
 	}
 	
-	public PathGenerator getKeystrokePathGenerator(char from, char to) {
-		CharPair pair = new CharPair(from, to);
-		if (!this.pathGeneratorMap().containsKey(pair)) {
-			this.pathGeneratorMap().put(pair, new PathGenerator(this.type, this.getKeystrokeMetadata(from, to)));
+	public int getTailCostForKeystroke(char from, char to) {
+		int result;
+		if (this.controller != null) {
+			String myCommand = this.getCommandForKeystroke(from, to);
+			result = this.controller.getTailCostForKeypresses(myCommand);
+		} else {
+			result = 1;
 		}
-		return this.pathGeneratorMap().get(pair);
+		return result;
+	}
+	
+	public String getCommandForKeystroke(char from, char to) {
+		CharPair pair = new CharPair(from, to);
+		if (!this.commandMap().containsKey(pair)) {
+			StringBuilder strb = new StringBuilder();
+			List<Dir> path = this.getShortestPathForKeystroke(from, to);
+			for (Dir d : path) {
+				strb.append(Command.getCommandByDir(d).c);
+			}
+			this.commandMap().put(pair, strb.append(Command.ACT.c).toString());
+		}
+		return this.commandMap().get(pair);
+	}
+	
+	private List<Dir> getShortestPathForKeystroke(char from, char to) {
+		/*
+		 * Start with the premise that the shortest paths between keys all
+		 * consist of some number of column offsets and some number of row
+		 * offsets. We're only considering two candidates: the two with the
+		 * fewest number of key changes (on the theory that repeated
+		 * keypresses are less costly than keypresses that need navigation
+		 * between them. Sometimes there will only be one candidate (when
+		 * there is only one type of offset involved, column or row). When
+		 * there are two candidates, one might be eliminated for being
+		 * "invalid," that is, it passes over an emtpy space on the keypad.
+		 * If both are valid, both are assumed equally costly.
+		 * 
+		 * The two potential candidate paths can be described by a number
+		 * of column offsets (in one direction), a number of row offsets
+		 * (in another direction), and an "arrangement" of column-first or
+		 * row-first.
+		 */
+		List<Dir> result = null;
+		Coords fromPosition = this.charMap().get(from).position;
+		Coords toPosition = this.charMap().get(to).position;
+		PathMetadata metadata = new PathMetadata(from, to, fromPosition.getOffsetTo(toPosition));
+		int colOffset = metadata.getColCount();
+		int rowOffset = metadata.getRowCount();
+		
+		if (colOffset == 0 && rowOffset == 0) {
+			// This must be the same key
+			result = new ArrayList<Dir>();
+		} else if (colOffset != 0) {
+			result = this.getValidPath(metadata, true);
+		}
+		
+		if (result == null) {
+			result = this.getValidPath(metadata, false);
+		}
+		
+		if (result == null) {
+			throw new RuntimeException(String.format("%s unable to find valid path with %s", this.name, metadata.toString()));
+		}
+		return result;
+	}
+	
+	// Returns null if path would be invalid
+	private List<Dir> getValidPath(PathMetadata metadata, boolean colFirst) {
+		List<Dir> result = null;
+		List<Dir> temp = new ArrayList<Dir>();
+		int colIdx = colFirst ? 0 : 1;
+		int rowIdx = colIdx ^ 1;
+		CountDir[] countDirs = new CountDir[2];
+		countDirs[colIdx] = new CountDir(metadata.getColCount(), metadata.getColDir());
+		countDirs[rowIdx] = new CountDir(metadata.getRowCount(), metadata.getRowDir());
+		
+		Coords checking = this.charMap.get(metadata.getFrom()).position;
+		boolean valid = true;
+		for (int idx = 0; idx < 2 && valid; idx++) {
+			for (int i = 1; i <= countDirs[idx].count && valid; i++) {
+				Dir d = countDirs[idx].dir;
+				checking = checking.applyOffset(d);
+				temp.add(d);
+				valid = this.positionMap().containsKey(checking);
+			}
+		}
+		
+		if (valid) {
+			result = temp;
+		}
+		return result;
 	}
 	
 	@Override
 	public String toString() {
+		return this.name;
+	}
+	
+	public String status() {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
 		
-		pw.println(this.name);
+		pw.println("Keypad: " + this.name);
+		
+		pw.print("Controlled by: ");
+		if (this.controller != null) {
+			pw.print(this.controller.name);
+		} else {
+			pw.print("N/A");
+		}
+		pw.println();
+		
+		pw.print("Controlling: ");
+		if (this.worker != null) {
+			pw.print(this.worker.name);
+		} else {
+			pw.print("N/A");
+		}
+		pw.println();
+		
 		for (int row = 0; row < this.height; row++) {
 			for (int col = 0; col < this.width; col++) {
 				Coords coords = new Coords(col, row);
@@ -118,15 +264,6 @@ public class Keypad {
 		return sw.toString();
 	}
 
-	// Returns valid or throws
-	private Coords keyPosition(char c) {
-		if (this.charMap().containsKey(c)) {
-			return this.charMap().get(c).position;
-		} else {
-			throw new RuntimeException(String.format("%s does not have a '%c' key", this.name, c));
-		}
-	}
-	
 	private Map<Coords, Key> positionMap() {
 		if (this.positionMap == null) {
 			this.positionMap = new HashMap<Coords, Key>();
@@ -143,11 +280,11 @@ public class Keypad {
 		return this.charMap;
 	}
 	
-	private Map<CharPair, PathGenerator> pathGeneratorMap() {
-		if (!PATH_GENERATOR_MAPS.containsKey(this.type)) {
-			PATH_GENERATOR_MAPS.put(this.type, new HashMap<CharPair, PathGenerator>());
+	private Map<CharPair, String> commandMap() {
+		if (!COMMAND_MAPS.containsKey(this.type)) {
+			COMMAND_MAPS.put(this.type, new HashMap<CharPair, String>());
 		}
-		return PATH_GENERATOR_MAPS.get(this.type);
+		return COMMAND_MAPS.get(this.type);
 	}
 	
 	public enum KeypadType {
@@ -181,4 +318,6 @@ public class Keypad {
 			return String.format("'%c' key at %s", this.c, this.position.toString());
 		}
 	}
+	
+	private record CountDir(int count, Dir dir) {}
 }

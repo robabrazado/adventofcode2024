@@ -239,6 +239,8 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 [Much later that day] That was a bust. I mean, I had a great time playing with stuff...made my own command-generating Iterator and all kindsa fun stuff. But in the end, it's not getting any better results, and it is way WAY more complicated. I think I'm just not approaching this correctly at all. I may try and take a break from this puzzle and try for some other starts I haven't gotten yet. But I think I need a whole new approach here.
 
+[Day 36] Okay. I rewrote this thing (yet again), tried to make it as uncomplicated as I could, and I'm back to the point of passing the test data but failing the live data. It *has* to be a problem with my algorithm. Or, more specifically, my assumptions. This needs more thought.
+
 ## Day 22: Monkey Market
 
 I wasn't even going to start a new puzzle today, but the description for part 1 seemed so straightforward that I assumed either part 2 would be way complicated, or else I was fooling myself and part 1 would take forever with a naive implementation. I rolled the dice, though, and got part 1 relatively quickly. Then, of course, part 2 is *way* more complicated, so I'm not going to try that tonight. Until next time, monkeys!
