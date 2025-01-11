@@ -6,42 +6,44 @@ import com.robabrazado.aoc2024.Solver;
 
 // --- Day 21: Keypad Conundrum ---
 /*
- * Okay, time for a complete rewrite. Well...almost complete; I'm keeping
- * Keypad and some simple struct-type objects, but I'm saying goodbye to the
- * venerable Robot, and I'm definitely saying goodbye to all that generator
- * crap from before. I'm gonna pare part 1 down to bare bones and see what I
- * can get going. 
+ * I've rewritten this so many times. I don't think I even committed the last
+ * one. Here we go again from the top.
  * 
- * It starts (and now ends) with the Keypad, a grid-like collection of Keys.
+ * It starts and ends with the Keypad, a grid-like collection of Keys. A
+ * Keypad accepts Commands (input) and produces Keypresses (output). Any
+ * Keypad can be asked what Commands will generate a sequence of Keypresses.
+ * 
  * The Keypads live in a controller-worker chain, with the "head" Keypad
  * having no worker and the "tail" Keypad having no controller. In terms of
  * the puzzle, the head Keypad operates the door, and the tail Keypad is
- * operated by the player.
+ * operated by the player. If a Keypad has a controller, its Commands are
+ * a sequence of directions that move a conceptual "cursor" around the Keypad.
+ * (The cursor is, in the fiction, the robot arm operating the Keypad. It is
+ * not reflected in the object model.) If a Keypad has no controller, its
+ * Commands are simply a sequence of its own keys to be pressed.
  * 
- * A Keypad has a Cursor. This is only conceptual and is not reflected in the
- * object model. In terms of the puzzle, the Cursor is a robot arm. The Cursor
- * is operated with Commands. One Command either moves the Cursor one space or
- * presses the "active" Key (the Key over which the Cursor is positioned).
+ * A Keystroke is the production of a Keypress from a cursor starting
+ * position. It can be represented by a sequence of Commands which (a) move
+ * the cursor from the starting position to the desired key and (b) press the
+ * key. If a Keypad has no controller, a Keystroke is, again, just a key to be
+ * pressed.
  * 
- * A Keypad produces Keypresses. A Keypress is...well, you know...The pressing
- * of a Key. A Keypress is produced by a Keystroke, which is (a) the Command
- * sequence necessary to position the Cursor (b) followed by an ACT Command.
- * Part (a), the positioning Sequence, is a Path through the Keypad. (A Path
- * is a sequence of directions, while a positioning sequence is a sequence of
- * Commands.)
+ * Any given Keystroke has some number of associated Command sequences. The
+ * shortest Path between two Keys is made up of a number of column offsets
+ * in one direction plus a number of row offsets in another direction, but
+ * because they can be in any order, all permutations are valid as long as
+ * they keep the Cursor positioned over a Key at every step along the Path.
+ * Either number of offsets can be zero. If they are both zero, the Cursor
+ * is not moving, so a Command sequence with no positioning sequence denotes
+ * a repeated Keypress.
  * 
- * The Cost of a Keystroke is the length of the shortest Command sequence
- * necessary to produce the desired Keystroke. The shortest Command sequence
- * is a sequence no longer than the taxicab distance between the starting
- * position of the Cursor and the ending position of the Cursor (the position
- * of the desired Key). At the beginning of any Keystroke sequence, the Cursor
- * is assumed to be positioned over the 'A' key. There may be more than one
- * valid shortest Path from Key to Key, but they will all have the same
- * length, and so the Keystroke will have a consistent Cost.
+ * The Cost associated with a Keystroke is the length of the Command sequence
+ * needed to produce the desired Keypress. The Tail Cost of a Keystroke is
+ * the length of the command string needed on the final Keypad in the control
+ * chain (the tail Keypad), the one with no controller.
  * 
- * The Tail Cost of a Keystroke is the length of the shortest Command sequence
- * needed for the TAIL Keypad in order to produced the desired Keystroke on
- * the asked Keypad.
+ * We're looking for the lowest Tail Cost for a given Kepress sequence on the
+ * Keypad at the head of the chain, the Keypad with no worker.
  */
 public class Day21Solver extends Solver {
 	

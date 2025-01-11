@@ -1,9 +1,5 @@
 package com.robabrazado.aoc2024.day21;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.robabrazado.aoc2024.grid.Dir;
 
 public enum Command {
@@ -34,15 +30,5 @@ public enum Command {
 		default:
 			throw new RuntimeException("Unsupported direction: " + d.name());
 		}
-	}
-	
-	public List<Command> getCommandsByDirs(Collection<Dir> dirs) {
-		List<Command> result = new ArrayList<Command>();
-		if (dirs != null) {
-			for (Dir d : dirs) {
-				result.add(Command.getCommandByDir(d));
-			}
-		}
-		return result;
 	}
 }

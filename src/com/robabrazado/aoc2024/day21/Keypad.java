@@ -2,11 +2,9 @@ package com.robabrazado.aoc2024.day21;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,16 +12,16 @@ import com.robabrazado.aoc2024.grid.Coords;
 import com.robabrazado.aoc2024.grid.Dir;
 
 public class Keypad {
-	private static final Map<KeypadType, Map<CharPair, String>> COMMAND_MAPS =
-			new HashMap<KeypadType, Map<CharPair, String>>();
-	
 	private final KeypadType type;
 	private final String name;
 	private final Set<Key> keys;
+	private final Coords emptySpacePosition;
 	private final int width;
 	private final int height;
 	private final Keypad controller;
 	private Keypad worker;
+	
+	private final Map<CharPair, Integer> lowestCostCache = new HashMap<CharPair, Integer>();
 	
 	private Map<Coords, Key> positionMap = null;
 	private Map<Character, Key> charMap = null;
@@ -43,6 +41,7 @@ public class Keypad {
 		Set<Key> tempKeys = new HashSet<Key>();
 		Set<Character> seenChars = new HashSet<Character>();
 		Set<Coords> seenCoords = new HashSet<Coords>();
+		Coords emptySpace = null;
 		this.height = type.keyGrid.length;
 		if (this.height > 0) {
 			this.width = type.keyGrid[0].length;
@@ -59,6 +58,12 @@ public class Keypad {
 								throw new RuntimeException(String.format("Duplicate position found at %s", coords));
 							}
 							tempKeys.add(new Key(c, coords));
+						} else {
+							if (emptySpace == null) {
+								emptySpace = new Coords(col, row);
+							} else {
+								throw new RuntimeException("Duplicate emtpy space found");
+							}
 						}
 					}
 				}
@@ -69,6 +74,7 @@ public class Keypad {
 			throw new RuntimeException("Grid has no height");
 		}
 		this.keys = Collections.unmodifiableSet(tempKeys);
+		this.emptySpacePosition = emptySpace;
 		if (controller != null) {
 			controller.worker = this;
 		}
@@ -115,112 +121,127 @@ public class Keypad {
 				row >=0 && row < this.height;
 	}
 	
-	public int getTailCostForKeypresses(String code) {
+	public int getLowestTailCost(String keypresses) {
 		int result = 0;
 		
-		if (code != null) {
-			char from = 'A';
-			char[] chars = code.toCharArray();
-			for (char to : chars) {
-				result += this.getTailCostForKeystroke(from, to);
-				from = to;
+		if (keypresses != null && !keypresses.isEmpty()) {
+			if (this.controller != null) {
+				char from = 'A'; // Assume always starting from 'A' position
+				char[] chars = keypresses.toCharArray();
+				for (char to : chars) {
+					result += this.getLowestTailCostForKeypress(from, to);
+					from = to;
+				}
+			} else {
+				// I AM TAIL
+				result = keypresses.length();
 			}
 		}
-		
+			
 		return result;
 	}
 	
-	public int getTailCostForKeystroke(char from, char to) {
+	private int getLowestTailCostForKeypress(char from, char to) {
+		CharPair pair = new CharPair(from, to);
+		if (!this.lowestCostCache.containsKey(pair)) {
+			int result = 1;
+			if (controller != null) {
+				Coords fromPosition = this.charMap().get(from).position;
+				Coords toPosition = this.charMap().get(to).position;
+				Coords offset = fromPosition.getOffsetTo(toPosition);
+				PathMetadata metadata = new PathMetadata(fromPosition, offset);
+				result = this.getLowestTailCost(metadata);
+			}
+			
+			this.lowestCostCache.put(pair, result);
+		}
+		return this.lowestCostCache.get(pair);
+	}
+	
+	private int getLowestTailCost(PathMetadata metadata) {
+		/*
+		 * The metadata represents some collection of keypresses consisting
+		 * of (a) zero or more column offset commands, (b) zero or more row
+		 * offset commands, and (c) an ACT command. Parts (a) and (b) can be
+		 * combined in any order, but part (c) must come at the end. We assume
+		 * that the lowest cost will only be produced by either all part (a)
+		 * followed by all part (b) or all part (b) followed by all part (a).
+		 * This is because these are the two permutations with the fewest
+		 * changes in cursor position between keypresses.
+		 */
 		int result;
-		if (this.controller != null) {
-			String myCommand = this.getCommandForKeystroke(from, to);
-			result = this.controller.getTailCostForKeypresses(myCommand);
+		
+		if (metadata.getCol() != 0 || metadata.getRow() != 0) {
+			if (this.controller != null) {
+				String colLeg = Keypad.buildCommandLeg(metadata.getColCount(), metadata.getColDir(), true);
+				String rowLeg = Keypad.buildCommandLeg(metadata.getRowCount(), metadata.getRowDir(), true);
+				
+				int colFirstCost = Integer.MAX_VALUE;
+				if (metadata.getColCount() > 0 && this.isValidPath(metadata, true)) {
+					colFirstCost = this.controller.getLowestTailCost(colLeg + rowLeg + Command.ACT.c);
+				}
+				
+				int rowFirstCost = Integer.MAX_VALUE;
+				if (metadata.getRowCount() > 0 && this.isValidPath(metadata, false)) {
+					rowFirstCost = this.controller.getLowestTailCost(rowLeg + colLeg + Command.ACT.c);
+				}
+				
+				result = Math.min(colFirstCost, rowFirstCost);
+				if (result == Integer.MAX_VALUE) {
+					throw new RuntimeException(this.name + " found no valid paths: " + metadata);
+				}
+			} else {
+				// This is the tail controller, so all that matters is the length of the command string.
+				result = metadata.getTaxicabDistance() + 1;
+			}
 		} else {
+			// Repeated keypress
 			result = 1;
 		}
+		
 		return result;
 	}
 	
-	public String getCommandForKeystroke(char from, char to) {
-		CharPair pair = new CharPair(from, to);
-		if (!this.commandMap().containsKey(pair)) {
-			StringBuilder strb = new StringBuilder();
-			List<Dir> path = this.getShortestPathForKeystroke(from, to);
-			for (Dir d : path) {
-				strb.append(Command.getCommandByDir(d).c);
-			}
-			this.commandMap().put(pair, strb.append(Command.ACT.c).toString());
+	private boolean isValidPath(PathMetadata metadata, boolean columnFirst) {
+		if (!this.isInBounds(metadata.getStartPosition())) {
+			throw new RuntimeException("Start position " + metadata.getStartPosition().toString() + " is out of bounds on " + this.name);
 		}
-		return this.commandMap().get(pair);
-	}
-	
-	private List<Dir> getShortestPathForKeystroke(char from, char to) {
-		/*
-		 * Start with the premise that the shortest paths between keys all
-		 * consist of some number of column offsets and some number of row
-		 * offsets. We're only considering two candidates: the two with the
-		 * fewest number of key changes (on the theory that repeated
-		 * keypresses are less costly than keypresses that need navigation
-		 * between them. Sometimes there will only be one candidate (when
-		 * there is only one type of offset involved, column or row). When
-		 * there are two candidates, one might be eliminated for being
-		 * "invalid," that is, it passes over an emtpy space on the keypad.
-		 * If both are valid, both are assumed equally costly.
-		 * 
-		 * The two potential candidate paths can be described by a number
-		 * of column offsets (in one direction), a number of row offsets
-		 * (in another direction), and an "arrangement" of column-first or
-		 * row-first.
-		 */
-		List<Dir> result = null;
-		Coords fromPosition = this.charMap().get(from).position;
-		Coords toPosition = this.charMap().get(to).position;
-		PathMetadata metadata = new PathMetadata(from, to, fromPosition.getOffsetTo(toPosition));
-		int colOffset = metadata.getColCount();
-		int rowOffset = metadata.getRowCount();
-		
-		if (colOffset == 0 && rowOffset == 0) {
-			// This must be the same key
-			result = new ArrayList<Dir>();
-		} else if (colOffset != 0) {
-			result = this.getValidPath(metadata, true);
+		if (!this.isInBounds(metadata.getEndPosition())) {
+			throw new RuntimeException("End position " + metadata.getEndPosition().toString() + " is out of bounds on " + this.name);
 		}
-		
-		if (result == null) {
-			result = this.getValidPath(metadata, false);
-		}
-		
-		if (result == null) {
-			throw new RuntimeException(String.format("%s unable to find valid path with %s", this.name, metadata.toString()));
-		}
-		return result;
-	}
-	
-	// Returns null if path would be invalid
-	private List<Dir> getValidPath(PathMetadata metadata, boolean colFirst) {
-		List<Dir> result = null;
-		List<Dir> temp = new ArrayList<Dir>();
-		int colIdx = colFirst ? 0 : 1;
-		int rowIdx = colIdx ^ 1;
-		CountDir[] countDirs = new CountDir[2];
-		countDirs[colIdx] = new CountDir(metadata.getColCount(), metadata.getColDir());
-		countDirs[rowIdx] = new CountDir(metadata.getRowCount(), metadata.getRowDir());
-		
-		Coords checking = this.charMap.get(metadata.getFrom()).position;
 		boolean valid = true;
-		for (int idx = 0; idx < 2 && valid; idx++) {
-			for (int i = 1; i <= countDirs[idx].count && valid; i++) {
-				Dir d = countDirs[idx].dir;
-				checking = checking.applyOffset(d);
-				temp.add(d);
-				valid = this.positionMap().containsKey(checking);
+		
+		if (this.emptySpacePosition != null) {
+			int emptyCol = this.emptySpacePosition.getCol();
+			int emptyRow = this.emptySpacePosition.getRow();
+			int startCol = metadata.getStartPosition().getCol();
+			int colOffset = metadata.getCol();
+			int startRow = metadata.getStartPosition().getRow();
+			int rowOffset = metadata.getRow();
+			
+			int colRangeLo = colOffset < 0 ? startCol + colOffset : startCol;
+			int colRangeHi = colOffset < 0 ? startCol : startCol + colOffset;
+			int rowRangeLo = rowOffset < 0 ? startRow + rowOffset : startRow;
+			int rowRangeHi = rowOffset < 0 ? startRow : startRow + rowOffset;
+			
+			if (columnFirst) {
+				valid = !((emptyRow == startRow && colRangeLo <= emptyCol && colRangeHi >= emptyCol) ||
+						(emptyCol == (startCol + colOffset) && rowRangeLo <= emptyRow && rowRangeHi >= emptyRow));
+			} else {
+				valid = !((emptyCol == startCol && rowRangeLo <= emptyRow && rowRangeHi >= emptyRow) ||
+						(emptyRow == (startRow + rowOffset) && colRangeLo <= emptyCol && colRangeHi >= emptyCol));
 			}
 		}
 		
-		if (valid) {
-			result = temp;
+		return valid;
+	}
+	
+	private static String buildCommandLeg(int count, Dir d, boolean column) {
+		StringBuilder strb = new StringBuilder();
+		for (int i = 1; i <= count; i++) {
+			strb.append(Command.getCommandByDir(d).c);
 		}
-		return result;
+		return strb.toString();
 	}
 	
 	@Override
@@ -280,13 +301,6 @@ public class Keypad {
 		return this.charMap;
 	}
 	
-	private Map<CharPair, String> commandMap() {
-		if (!COMMAND_MAPS.containsKey(this.type)) {
-			COMMAND_MAPS.put(this.type, new HashMap<CharPair, String>());
-		}
-		return COMMAND_MAPS.get(this.type);
-	}
-	
 	public enum KeypadType {
 		NUMERIC			(new char[][] {{'7', '8', '9'}, {'4', '5', '6'}, {'1', '2', '3'}, {0, '0', 'A'}}),
 		DIRECTIONAL		(new char[][] {{0, '^', 'A'}, {'<', 'v', '>'}});
@@ -318,6 +332,5 @@ public class Keypad {
 			return String.format("'%c' key at %s", this.c, this.position.toString());
 		}
 	}
-	
-	private record CountDir(int count, Dir dir) {}
+
 }

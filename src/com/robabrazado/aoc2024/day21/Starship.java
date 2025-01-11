@@ -64,9 +64,9 @@ public class Starship {
 			} else {
 				throw new RuntimeException("Could not retrieve numeric portion of malformed door code: " + code);
 			}
-			int len = this.doorKeypad.getTailCostForKeypresses(code);
-			System.out.format("%s: %d%n", code, len);
+			int len = this.doorKeypad.getLowestTailCost(code);
 			int complexity = numeric * len;
+			System.out.format("%s (%d * %d): %d%n", code, len, numeric, complexity);
 			result += complexity;
 		}
 		return result;

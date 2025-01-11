@@ -8,26 +8,26 @@ import com.robabrazado.aoc2024.grid.Dir;
  * altogether because when you got down to it, it was just the same
  * information as Coords. This is the new metadata object which IS a Coords
  * object (representing the offset in a path), but with some handy wrapped
- * functionality plus from/to information. You can still use it for Coords
+ * functionality plus start position. You can still use it for Coords
  * (offset) purposes.
  * 
  * Of particular note is that path metadata has no keypad awareness! This
- * object does not imply anything about the validity of the path or even
- * the existence of the specified keys.
+ * object does not imply anything about the validity of any position or path.
  */
 public class PathMetadata extends Coords {
-	private final char from;
-	private final char to;
+	private final Coords startPosition;
 	
-	public PathMetadata(char from, char to, int colOffset, int rowOffset) {
+	public PathMetadata(Coords startPosition, int colOffset, int rowOffset) {
 		super(colOffset, rowOffset);
-		this.from = from;
-		this.to = to;
+		if (startPosition == null) {
+			throw new RuntimeException("Path metadata must have a start position");
+		}
+		this.startPosition = startPosition;
 		return;
 	}
 	
-	public PathMetadata(char from, char to, Coords offset) {
-		this(from, to, offset.getCol(), offset.getRow());
+	public PathMetadata(Coords startPosition, Coords offset) {
+		this(startPosition, offset.getCol(), offset.getRow());
 		return;
 	}
 	
@@ -47,12 +47,12 @@ public class PathMetadata extends Coords {
 		return super.getRow() > 0 ? Dir.S : Dir.N;
 	}
 	
-	public char getFrom() {
-		return this.from;
+	public Coords getStartPosition() {
+		return this.startPosition;
 	}
 	
-	public char getTo() {
-		return this.to;
+	public Coords getEndPosition() {
+		return this.startPosition.applyOffset(this);
 	}
 	
 	public int getTaxicabDistance() {
@@ -61,6 +61,6 @@ public class PathMetadata extends Coords {
 	
 	@Override
 	public String toString() {
-		return String.format("'%c' to '%c' (%s)", this.from, this.to, super.toString());
+		return String.format("Start: %s; Offset: %s", this.startPosition.toString(), super.toString());
 	}
 }
