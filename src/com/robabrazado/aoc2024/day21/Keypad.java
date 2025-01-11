@@ -2,6 +2,7 @@ package com.robabrazado.aoc2024.day21;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +22,7 @@ public class Keypad {
 	private final Keypad controller;
 	private Keypad worker;
 	
-	private final Map<CharPair, Integer> lowestCostCache = new HashMap<CharPair, Integer>();
+	private final Map<CharPair, BigInteger> lowestCostCache = new HashMap<CharPair, BigInteger>();
 	
 	private Map<Coords, Key> positionMap = null;
 	private Map<Character, Key> charMap = null;
@@ -121,30 +122,30 @@ public class Keypad {
 				row >=0 && row < this.height;
 	}
 	
-	public int getLowestTailCost(String keypresses) {
-		int result = 0;
+	public BigInteger getLowestTailCost(String keypresses) {
+		BigInteger result = BigInteger.ZERO;
 		
 		if (keypresses != null && !keypresses.isEmpty()) {
 			if (this.controller != null) {
 				char from = 'A'; // Assume always starting from 'A' position
 				char[] chars = keypresses.toCharArray();
 				for (char to : chars) {
-					result += this.getLowestTailCostForKeypress(from, to);
+					result = result.add(this.getLowestTailCostForKeypress(from, to));
 					from = to;
 				}
 			} else {
 				// I AM TAIL
-				result = keypresses.length();
+				result = BigInteger.valueOf(keypresses.length());
 			}
 		}
 			
 		return result;
 	}
 	
-	private int getLowestTailCostForKeypress(char from, char to) {
+	private BigInteger getLowestTailCostForKeypress(char from, char to) {
 		CharPair pair = new CharPair(from, to);
 		if (!this.lowestCostCache.containsKey(pair)) {
-			int result = 1;
+			BigInteger result = BigInteger.ONE;
 			if (controller != null) {
 				Coords fromPosition = this.charMap().get(from).position;
 				Coords toPosition = this.charMap().get(to).position;
@@ -158,7 +159,7 @@ public class Keypad {
 		return this.lowestCostCache.get(pair);
 	}
 	
-	private int getLowestTailCost(PathMetadata metadata) {
+	private BigInteger getLowestTailCost(PathMetadata metadata) {
 		/*
 		 * The metadata represents some collection of keypresses consisting
 		 * of (a) zero or more column offset commands, (b) zero or more row
@@ -169,34 +170,40 @@ public class Keypad {
 		 * This is because these are the two permutations with the fewest
 		 * changes in cursor position between keypresses.
 		 */
-		int result;
+		BigInteger result;
 		
 		if (metadata.getCol() != 0 || metadata.getRow() != 0) {
 			if (this.controller != null) {
 				String colLeg = Keypad.buildCommandLeg(metadata.getColCount(), metadata.getColDir(), true);
 				String rowLeg = Keypad.buildCommandLeg(metadata.getRowCount(), metadata.getRowDir(), true);
 				
-				int colFirstCost = Integer.MAX_VALUE;
+				BigInteger colFirstCost = null;
 				if (metadata.getColCount() > 0 && this.isValidPath(metadata, true)) {
 					colFirstCost = this.controller.getLowestTailCost(colLeg + rowLeg + Command.ACT.c);
 				}
 				
-				int rowFirstCost = Integer.MAX_VALUE;
+				BigInteger rowFirstCost = null;
 				if (metadata.getRowCount() > 0 && this.isValidPath(metadata, false)) {
 					rowFirstCost = this.controller.getLowestTailCost(rowLeg + colLeg + Command.ACT.c);
 				}
 				
-				result = Math.min(colFirstCost, rowFirstCost);
-				if (result == Integer.MAX_VALUE) {
+				if (colFirstCost == null) {
+					result = rowFirstCost;
+				} else if (rowFirstCost == null) {
+					result = colFirstCost;
+				} else {
+					result = colFirstCost.min(rowFirstCost);
+				}
+				if (result == null) {
 					throw new RuntimeException(this.name + " found no valid paths: " + metadata);
 				}
 			} else {
 				// This is the tail controller, so all that matters is the length of the command string.
-				result = metadata.getTaxicabDistance() + 1;
+				result = BigInteger.valueOf(metadata.getTaxicabDistance()).add(BigInteger.ONE);
 			}
 		} else {
 			// Repeated keypress
-			result = 1;
+			result = BigInteger.ONE;
 		}
 		
 		return result;

@@ -2,6 +2,7 @@ package com.robabrazado.aoc2024.day21;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -15,11 +16,21 @@ public class Starship {
 	private final Keypad doorKeypad;
 	private final List<String> requiredDoorCodes = new ArrayList<String>();
 	
-	public Starship(Stream<String> puzzleInput) {
-		this.doorKeypad = new Keypad("Vacuum Keypad", KeypadType.NUMERIC,
-			new Keypad("Radiation Keypad", KeypadType.DIRECTIONAL,
-				new Keypad("Frozen Keypad", KeypadType.DIRECTIONAL,
-					new Keypad("Crowded Keypad", KeypadType.DIRECTIONAL))));
+	public Starship(Stream<String> puzzleInput, boolean partOne) {
+		if (partOne) {
+			this.doorKeypad = new Keypad("Vacuum Keypad", KeypadType.NUMERIC,
+				new Keypad("Radiation Keypad", KeypadType.DIRECTIONAL,
+					new Keypad("Frozen Keypad", KeypadType.DIRECTIONAL,
+						new Keypad("Crowded Keypad", KeypadType.DIRECTIONAL))));
+		} else {
+			// My keypad -> 25 intervening keypads -> door keypad
+			Keypad keypad = new Keypad("Player Keypad", KeypadType.DIRECTIONAL);
+			for (int i = 1; i <= 25; i++) {
+				Keypad newKeypad = new Keypad(String.format("Interstitial Keypad $02d", i), KeypadType.DIRECTIONAL, keypad);
+				keypad = newKeypad;
+			}
+			this.doorKeypad = new Keypad("Door Keypad", KeypadType.NUMERIC, keypad);
+		}
 		
 		Iterator<String> it = puzzleInput.iterator();
 		while (it.hasNext()) {
@@ -53,8 +64,8 @@ public class Starship {
 		return sw.toString();
 	}
 
-	public int getComplexitySum() {
-		int result = 0;
+	public BigInteger getComplexitySum() {
+		BigInteger result = BigInteger.ZERO;
 		Pattern p = Pattern.compile("^(\\d+)A$");
 		for (String code : this.requiredDoorCodes) {
 			Matcher m = p.matcher(code);
@@ -64,10 +75,10 @@ public class Starship {
 			} else {
 				throw new RuntimeException("Could not retrieve numeric portion of malformed door code: " + code);
 			}
-			int len = this.doorKeypad.getLowestTailCost(code);
-			int complexity = numeric * len;
-			System.out.format("%s (%d * %d): %d%n", code, len, numeric, complexity);
-			result += complexity;
+			BigInteger cost = this.doorKeypad.getLowestTailCost(code);
+			BigInteger complexity = cost.multiply(BigInteger.valueOf(numeric));
+			System.out.format("%s (%s * %d): %s%n", code, cost, numeric, complexity);
+			result = result.add(complexity);
 		}
 		return result;
 	}

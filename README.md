@@ -243,6 +243,8 @@ Once I implemented my third attempt at part 2, the only stumbling block was that
 
 [Day 42] HOLY GOOD CHRIST IT FINALLY WORKS. Doing a commit before anything else happens. I do NOT know what I did differently this time...as far as I know, this is just another implementation of the same algorithm I've been trying to implement, like, five or six times now. Sadly, I am on my way out the door, and part 2 looks like...I should be able to use the same setup as part 1? But I don't have time to try it right now. I guess later today I'll find out if my caching is working right or what.
 
+[Later] Honestly, it went better than I thought it would, performance-wise, so I guess the caching was fine. Of course, after the first run, I had to rejigger everything to use BigInteger, because I saw an int value overflow in the output. I guess I should have anticipated that; when will I learn. Still...I am SO happy to see this one behind me.
+
 ## Day 22: Monkey Market
 
 I wasn't even going to start a new puzzle today, but the description for part 1 seemed so straightforward that I assumed either part 2 would be way complicated, or else I was fooling myself and part 1 would take forever with a naive implementation. I rolled the dice, though, and got part 1 relatively quickly. Then, of course, part 2 is *way* more complicated, so I'm not going to try that tonight. Until next time, monkeys!

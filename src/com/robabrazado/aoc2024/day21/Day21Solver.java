@@ -54,10 +54,10 @@ public class Day21Solver extends Solver {
 	
 	@Override
 	public String solve(Stream<String> puzzleInput, boolean partOne, boolean isTest) {
-		Starship starship = new Starship(puzzleInput);
+		Starship starship = new Starship(puzzleInput, partOne);
 		System.out.println(starship.status());
 		
-		return String.valueOf(starship.getComplexitySum());
+		return starship.getComplexitySum().toString();
 	}
 	
 }
