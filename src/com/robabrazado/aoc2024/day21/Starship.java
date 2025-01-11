@@ -26,7 +26,7 @@ public class Starship {
 			// My keypad -> 25 intervening keypads -> door keypad
 			Keypad keypad = new Keypad("Player Keypad", KeypadType.DIRECTIONAL);
 			for (int i = 1; i <= 25; i++) {
-				Keypad newKeypad = new Keypad(String.format("Interstitial Keypad $02d", i), KeypadType.DIRECTIONAL, keypad);
+				Keypad newKeypad = new Keypad(String.format("Interstitial Keypad %02d", i), KeypadType.DIRECTIONAL, keypad);
 				keypad = newKeypad;
 			}
 			this.doorKeypad = new Keypad("Door Keypad", KeypadType.NUMERIC, keypad);
