@@ -44,19 +44,12 @@ class Wire {
 	}
 	
 	// Throws error if value unavailable
-	// Once called, value will remain in wire until cleared
-	boolean getValue(BoardInput input) {
-		boolean value;
-		if (this.inputGate != null) {
-			value = this.inputGate.getOutput(input);
-		} else {
-			if (input.hasInputSignal(this.id)) {
-				value = input.getInputSignal(this.id);
-			} else {
-				throw new RuntimeException("Wire " + this.id + " has no input signal");
-			}
+	// Destructive to input
+	boolean getValue(BoardSignals input) {
+		if (!input.hasSignal(this.id)) {
+			input.setSignal(this.id, this.inputGate.getOutput(input));
 		}
-		return value;
+		return input.getSignal(this.id);
 	}
 	
 	boolean isInputWire() {
@@ -66,7 +59,7 @@ class Wire {
 	@Override
 	public String toString() {
 		StringBuilder strb = new StringBuilder();
-		strb.append(this.id);
+		strb.append(this.id).append(' ');
 		strb.append(this.inputGate == null ? '0' : '1').append(" input(s); ");
 		strb.append(this.outputGates.size()).append(" output(s)");
 		

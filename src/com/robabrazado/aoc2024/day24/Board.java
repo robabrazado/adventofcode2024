@@ -23,7 +23,14 @@ public class Board {
 		return;
 	}
 	
-	public BigInteger getZOutputValue(BoardInput input) {
+	public BigInteger getZOutputValue(BoardSignals input) {
+		return this.getZOutputValue(input, false);
+	}
+	
+	public BigInteger getZOutputValue(BoardSignals input, boolean destructiveToInput) {
+		if (!destructiveToInput) {
+			input = input.copy();
+		}
 		StringBuilder strb = new StringBuilder();
 		Set<String> wireIds = new TreeSet<String>(this.wireMap.keySet());
 		for (String s : wireIds) {
@@ -37,7 +44,9 @@ public class Board {
 	public String status() {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
-		Set<String> wires = new TreeSet<String>(this.wireMap.keySet());
+		Set<String> wires = new TreeSet<String>(new WireIdComparator());
+		wires.addAll(this.wireMap.keySet());
+		
 		for (String wire : wires) {
 			pw.println(this.wireMap.get(wire));
 		}

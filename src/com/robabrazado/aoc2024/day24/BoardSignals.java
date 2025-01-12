@@ -12,33 +12,39 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-public class BoardInput {
-	private final Map<String, Boolean> inputStates = new HashMap<String, Boolean>();
+public class BoardSignals {
+	private final Map<String, Boolean> signals = new HashMap<String, Boolean>();
 	
-	public BoardInput() {
-		
+	public BoardSignals() {
+		return;
 	}
 	
-	public boolean hasInputSignal(String wireId) {
-		return this.inputStates.containsKey(wireId);
+	public boolean hasSignal(String wireId) {
+		return this.signals.containsKey(wireId);
 	}
 	
-	public boolean getInputSignal(String wireId) {
-		if (!this.inputStates.containsKey(wireId)) {
+	public boolean getSignal(String wireId) {
+		if (!this.signals.containsKey(wireId)) {
 			throw new RuntimeException("Wire " + wireId + " has not been intialized");
 		}
-		return this.inputStates.get(wireId).booleanValue();
+		return this.signals.get(wireId).booleanValue();
 	}
 	
-	public void setInputSignal(String wireId, boolean signal) {
-		this.inputStates.put(wireId, Boolean.valueOf(signal));
+	public void setSignal(String wireId, boolean signal) {
+		this.signals.put(wireId, Boolean.valueOf(signal));
 		return;
+	}
+	
+	public BoardSignals copy() {
+		BoardSignals copy = new BoardSignals();
+		copy.signals.putAll(this.signals);
+		return copy;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder strb = new StringBuilder();
-		Set<String> allIds = this.inputStates.keySet();
+		Set<String> allIds = this.signals.keySet();
 		
 		
 		if (!allIds.isEmpty()) {
@@ -69,7 +75,7 @@ public class BoardInput {
 				Collections.sort(otherIds);
 				strb.append("; ").append(
 						otherIds.stream()
-							.map(id -> id + "=" + (this.inputStates.get(id) ? '1' : '0'))
+							.map(id -> id + "=" + (this.signals.get(id) ? '1' : '0'))
 							.collect(Collectors.joining("; ")));
 			}
 		} else {
@@ -82,9 +88,9 @@ public class BoardInput {
 	public String status() {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
-		Set<String> ids = new TreeSet<String>(this.inputStates.keySet());
+		Set<String> ids = new TreeSet<String>(this.signals.keySet());
 		for (String id : ids) {
-			pw.format("%s=%c%n", id, this.inputStates.get(id) ? '1' : '0');
+			pw.format("%s=%c%n", id, this.signals.get(id) ? '1' : '0');
 		}
 		return sw.toString();
 	}
@@ -93,7 +99,7 @@ public class BoardInput {
 	private void appendBits(StringBuilder strb, List<String> ids) {
 		Collections.sort(ids, Comparator.reverseOrder());
 		for (String id : ids) {
-			strb.append(this.inputStates.get(id) ? '1' : '0');
+			strb.append(this.signals.get(id) ? '1' : '0');
 		}
 		return;
 	}

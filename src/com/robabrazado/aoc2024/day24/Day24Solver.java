@@ -24,16 +24,20 @@ public class Day24Solver extends Solver {
 		System.out.println(digested.input().status());
 		System.out.println(digested.board().status());
 		
-		BigInteger zOutput = digested.board.getZOutputValue(digested.input);
-		System.out.println(zOutput.toString(2));
-		return zOutput.toString();
+		if (partOne) {
+			BigInteger zOutput = digested.board.getZOutputValue(digested.input);
+			System.out.println(zOutput.toString(2));
+			return zOutput.toString();
+		} else {
+			throw new RuntimeException("Not yet implemented"); // TODO
+		}
 	}
 	
 	private static DigestedInput ingestPuzzleInput(Stream<String> puzzleInput) {
 		Iterator<String> it = puzzleInput.iterator();
 		String line = null;
 		Board board = new Board();
-		BoardInput boardInput = new BoardInput();
+		BoardSignals boardInput = new BoardSignals();
 		
 		// Input until first blank line is initial state
 		while (it.hasNext()) {
@@ -44,7 +48,7 @@ public class Day24Solver extends Solver {
 			
 			Matcher m = STATE_PATTERN.matcher(line);
 			if (m.find()) {
-				boardInput.setInputSignal(m.group(1), m.group(2).equals("1"));
+				boardInput.setSignal(m.group(1), m.group(2).equals("1"));
 			} else {
 				throw new RuntimeException("Unrecognized initial state input: " + line);
 			}
@@ -64,5 +68,5 @@ public class Day24Solver extends Solver {
 		return new DigestedInput(board, boardInput);
 	}
 	
-	private record DigestedInput (Board board, BoardInput input) {}
+	private record DigestedInput (Board board, BoardSignals input) {}
 }
