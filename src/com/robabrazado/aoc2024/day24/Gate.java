@@ -30,14 +30,14 @@ class Gate {
 	}
 	
 	// Throws exception if input signals not available
-	boolean getOutput() {
+	boolean getOutput(BoardInput input) {
 		switch (this.type) {
 		case AND:
-			return this.input1.getValue() && this.input2.getValue();
+			return this.input1.getValue(input) && this.input2.getValue(input);
 		case OR:
-			return this.input1.getValue() || this.input2.getValue();
+			return this.input1.getValue(input) || this.input2.getValue(input);
 		case XOR:
-			return this.input1.getValue() ^ this.input2.getValue();
+			return this.input1.getValue(input) ^ this.input2.getValue(input);
 		default: // Uh oh
 			throw new RuntimeException("Unsupported gate type");
 		}

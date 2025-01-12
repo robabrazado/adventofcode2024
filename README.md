@@ -283,6 +283,10 @@ For whatever reason, it seemed to make sense to me to have the signal informatio
 
 **End spoilers**
 
+[Day 43] Having finally gotten past Day 21, I'm now coming back to this part 2, now my penultimate star. Contrary to my previous instinct, I don't think I have to *completely* rewrite everything, but I'm definitely going to do some restructuring of the part 1 model to better support part 2. At the time of this writing, I have a vague notion of how I want to try to tackle part 2. There's a lot of specifics I haven't worked out yet, but I have an idea of what I want the object model to be able to support, so I'm going to start there.
+
+[Later] I'm checking in a commit for the refit of part 1. I've changed the architecture so that Wires no longer keep their own state, so the inputs and outputs only live as long as a Board method call. I also moved the parsing into the solver object. I don't know why I don't do that more. I mean...at first, it was part of my desire to be able to process data as it comes in, as opposed to parsing all the input and holding it all in memory when I didn't have to. That was more an academic exercise than a practical one, but it just became a habit, and I don't think it was necessary (or even useful) in many cases. In this case, though, there's definitely no gain for processing the input as it comes in, and it helps me keep the Board object clearer of junk, so...yeah. Anyway...I retested part 1 with the new architecture, and it's fine, so I'm moving on to part 2.
+
 ## Day 25: Code Chronicle
 
 [On day 28] I really phoned it in on this one. :) The solution is not rigorous...it makes lots of assumptions about the input and probably some other stuff, so it's not as generally applicable as I would normally like, but here we are. At the time of this writing, I'm 7 stars away from completion.
