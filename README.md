@@ -289,6 +289,16 @@ For whatever reason, it seemed to make sense to me to have the signal informatio
 
 [A bit later] Slightly reworked part 1. BoardInput is now BoardSignals to be of more general use, and now it also serves as a signal cache during evaluation, which I think will come in handy later.
 
+[Much later] Well...I'm thinking now I should actually do a full rewrite. I'm still happy with the changes I made for part 1, but embarrassingly, one of the things I "streamlined" out would, I think now, be helpful for part 2. So, all told, I think I just need a total redesign for part 2. Not sure if that's going to be today, though.
+
+[Day 44] I've started the rewrite and gotten it back to doing part 1, so I'm checking that part in. I know `BoardSignals` seems way overboard for this right now, and there's a ton left over in there from the previous run, but there may be some things in there I can salvage for part 2, so I'm leaving it for now. `Board`, `Gate`, and `Wire` have been rewritten to various degrees. `Gate` is totally different now, and `Wire` looks a lot more like its original implementation than the most recent one.
+
+**Day 24 part 1 spoilers (again)**
+
+The big reversal this time from the original implementation is that signals now travel in the more traditional direction (from input to output), as opposed to the reverse direction I did for the original. The similarity to the original is that the signal states are once again stored in the `Wire`s (and therefore the `Board`), as opposed to breaking the state out into the `BoardSignals` object like I did for the previous implementation.
+
+**End spoilers**
+
 ## Day 25: Code Chronicle
 
 [On day 28] I really phoned it in on this one. :) The solution is not rigorous...it makes lots of assumptions about the input and probably some other stuff, so it's not as generally applicable as I would normally like, but here we are. At the time of this writing, I'm 7 stars away from completion.
